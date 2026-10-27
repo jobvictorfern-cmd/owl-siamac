@@ -1,5 +1,11 @@
 # Verificação da landing page OWL
 
+## Lactalis na faixa de clientes — 27/10/2026
+
+- Logo oficial da Lactalis Brasil incluída nas duas sequências, agora com 21 marcas cada; cópia decorativa com `alt` vazio e `aria-hidden` preservado.
+- Conferido visualmente em 1280 × 720. Em 390 × 700, imagem carregada na caixa responsiva de 100 × 52 px, sem transbordamento horizontal ou erros de console. A ordem das imagens é igual nas duas sequências.
+- PNG embutido no SVG convertido em WebP sem perdas: pixels RGBA idênticos, arquivo final de 25.003 bytes e proporções oficiais preservadas. Build e referências locais conferidos.
+
 ## Aumento adicional de 5% — 27/10/2026
 
 - Escala ajustada de 0,77 para 0,8085, aumentando somente a distância da animação em 5%. Etapas, tamanho do ticket e pausa final preservados.

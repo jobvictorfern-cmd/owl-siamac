@@ -1,5 +1,9 @@
 # Ativos visuais do OWL
 
+## Lactalis Brasil — 27/10/2026
+
+Logo adicionado à faixa de clientes a pedido do usuário. Origem oficial: https://www.lactalis.com.br/wp-content/themes/lactalis/assets/images/logo.svg (site https://www.lactalis.com.br/). Arquivo publicado: `dist/assets/client-lactalis.svg`, com as proporções e o enquadramento do SVG oficial preservados. A imagem PNG embutida foi recodificada em WebP sem perdas, com igualdade exata dos pixels RGBA verificada: o SVG passou de 72.254 para 25.003 bytes. O perfil de cor foi preservado. O original está em `source-assets/client-lactalis-original.svg`.
+
 ## Conector USB fotorealista — 27/10/2026
 
 `dist/assets/usb-connector-photo.png` substitui o plugue desenhado em SVG. Ativo gerado com a ferramenta nativa `image_gen.imagegen`, 1774 × 887 px, com canal alfa verificado. A imagem apresenta borracha texturizada, símbolo em baixo-relevo e carcaça metálica. A composição SVG recorta somente o excesso de cabo reto; o PNG original permanece intacto. A ponta mantém o trajeto, rotação, máscara atrás do indicador e movimento de encaixe. A espessura do fio é recalculada com base no diâmetro da fotografia, evitando descontinuidade na junção. O acabamento e a sombra do fio foram suavizados para combinar com o novo ativo.

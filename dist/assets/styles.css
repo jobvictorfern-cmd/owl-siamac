@@ -217,7 +217,7 @@
 .indicator-station{left:35%}
 .computer-station{left:70%}
 
-/* All 20 clients, scrolling right to left with a seamless duplicate group. */
+/* Client logos scroll right to left with a seamless duplicate group. */
 .proof-heading{flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
 .proof-heading>a{min-height:32px}
 .client-marquee{width:100%;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}

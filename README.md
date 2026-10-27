@@ -14,7 +14,7 @@ O ticket reproduz em HTML o modelo SIAMAC enviado pelo usuário, sem a marca dia
 
 O mesmo notebook é usado na apresentação do produto. Sua tela é posicionada por transformação de perspectiva, usando a mesma reconstrução da interface exibida na animação. Os equipamentos e o caminhão são uma composição ilustrativa em camadas, sem conexão real ou simulação física 3D. A representação USB não define a compatibilidade de indicadores; a SIAMAC avalia a instalação.
 
-As animações continuam ativas independentemente da preferência de redução de movimento do sistema, conforme solicitado. A narrativa acompanha a rolagem nativa. Os controles visuais de etapas, o link para pular, as indicações de rolagem e simulação e a nota de teste abaixo dos botões principais foram removidos. Os 20 clientes apresentados no site original passam em uma linha contínua da direita para a esquerda, no celular e no computador, com cópia duplicada oculta para leitores de tela. A faixa mostra apenas os logos; o texto de apresentação e o botão de pausa foram removidos.
+As animações continuam ativas independentemente da preferência de redução de movimento do sistema, conforme solicitado. A narrativa acompanha a rolagem nativa. Os controles visuais de etapas, o link para pular, as indicações de rolagem e simulação e a nota de teste abaixo dos botões principais foram removidos. Os 20 clientes apresentados no site original e a Lactalis Brasil, adicionada a pedido do usuário, passam em uma linha contínua da direita para a esquerda, no celular e no computador, com cópia duplicada oculta para leitores de tela. A faixa mostra apenas os logos; o texto de apresentação e o botão de pausa foram removidos.
 
 ## Contato e conteúdo
 
