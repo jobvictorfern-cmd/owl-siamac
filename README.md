@@ -32,7 +32,7 @@ Fontes do conteúdo original:
 
 `dist/index.html` contém a página; `dist/assets/styles.css` define o layout; `dist/assets/app.js` controla a narrativa e o formulário. A fonte Manrope e sua licença SIL OFL estão incluídas. Os logos pertencem às respectivas marcas.
 
-Ativos atuais da sequência: `weighbridge-flatend.webp`, `truck-layer.webp`, `indicator.webp`, `owl-laptop-unplugged.png`, `usb-connector-perspective.png` e `owl-interface-hd.png`. A apresentação do produto também usa o notebook sem cabo. A versão da interface foi reconstruída com IA para apresentação; o recorte original permanece em `owl-official.webp`. Os prompts e a origem dos ativos editados/gerados estão em `ASSETS.md`. A verificação e seus limites estão em `QA.md`.
+Ativos atuais da sequência: `weighbridge-flatend.webp`, `truck-layer.webp`, `indicator.webp`, `owl-laptop-unplugged.webp`, `usb-connector-perspective.webp` e `owl-interface-hd.webp`. A apresentação do produto também usa o notebook sem cabo. A versão da interface foi reconstruída com IA para apresentação. Originais e versões antigas ficam em `source-assets/`, fora da publicação. Os prompts e a origem dos ativos estão em `ASSETS.md`; as otimizações sem perda de pixels e o carregamento do vídeo estão em `docs/performance.md`. A verificação e seus limites estão em `QA.md`.
 
 ## Executar localmente
 

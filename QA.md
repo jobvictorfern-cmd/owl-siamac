@@ -1,5 +1,15 @@
 # Verificação da landing page OWL
 
+## WhatsApp, mídia e responsividade — 27/10/2026
+
+- Verificação visual no navegador Chromium integrado em 1280 × 900, 768 × 1024, 390 × 844, 320 × 568 e 844 × 390. Sem rolagem horizontal; botão principal visível e separado do botão flutuante. Rotação entre retrato e paisagem recalculou a geometria.
+- Conferidos conexão USB, expansão da tela do notebook, seleção de veículo, confirmação e ticket completo. Em 320 × 568, o ticket também abriu no diálogo ampliado e fechou normalmente.
+- Miniatura local de 1280 × 720 carregada, sem iframe antes da interação. Clique abriu o player e iniciou o vídeo em 390 × 700; pausa funcionou. Nenhum erro de console observado.
+- Faixa de clientes pausada quando fora da tela. Modo de movimento reduzido exercitado em uma cópia local de teste com a preferência ativada: etapas acessíveis, faixa estática e ticket final completo. A cópia de teste não integra a publicação.
+- 24 conversões PNG → WebP verificadas por igualdade exata dos pixels RGBA. Fonte WOFF2 e 32 referências locais verificadas; 16 âncoras válidas; sintaxe JavaScript válida.
+- Destino do botão flutuante conferido: `5511918512948`, com mensagem sobre teste do OWL e automação. Nenhuma mensagem foi enviada durante o teste.
+- A verificação responsiva simula tamanhos de tela no navegador; não equivale a teste físico de todos os aparelhos, versões de sistema, Safari ou Firefox.
+
 ## Correção: permanência do ticket completo — 27/10/2026
 
 A animação agora termina antes da liberação da seção fixa. Em 962 × 884, a distância das etapas permaneceu em 1934 px e foi acrescentada uma faixa final de 806 px. Em dois pontos dessa faixa, separados por 442 px de rolagem, título, ticket e botão mantiveram exatamente suas posições; o papel estava totalmente revelado. Após a faixa, a página seguiu normalmente para os clientes. Também verificados título, ticket e botão integralmente visíveis em 320 × 568, com faixa final de 490 px. Ajustado o espaço abaixo da saída da impressora para não cobrir o topo do papel. Sintaxe JavaScript validada e console sem erros.

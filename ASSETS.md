@@ -101,4 +101,8 @@ Vídeo fornecido pelo usuário: https://www.youtube.com/watch?v=2ng8tgBNU6s — 
 
 ## Ícone do WhatsApp — 27/10/2026
 
-Desenho SVG do Bootstrap Icons: https://github.com/twbs/icons/blob/main/icons/whatsapp.svg. Incorporado ao símbolo `i-chat`, com preenchimento sólido e sem contorno adicional. Licença MIT preservada em `dist/assets/bootstrap-icons-LICENSE.txt`. Área quadrada de 28 px no contato direto.
+Desenho SVG do Bootstrap Icons: https://github.com/twbs/icons/blob/main/icons/whatsapp.svg. Incorporado ao símbolo `i-chat`, com preenchimento sólido e sem contorno adicional. Licença MIT preservada em `dist/assets/bootstrap-icons-LICENSE.txt`. Também utilizado no botão flutuante do WhatsApp.
+
+## Otimização para publicação — 27/10/2026
+
+Os PNGs citados acima foram preservados em `source-assets/`. O site utiliza suas versões WebP sem perda de pixels. Ativos antigos sem uso também foram preservados nessa pasta, fora da publicação. A fonte Manrope usa WOFF2. Detalhes da conversão, da capa do vídeo e do carregamento sob demanda estão em `docs/performance.md`.

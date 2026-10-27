@@ -4,6 +4,7 @@
   const WEIGHING = { initial: 28840, final: 32840 };
   WEIGHING.net = WEIGHING.final - WEIGHING.initial;
   const STORY_LENGTH = 1.92;
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hero = document.querySelector('.hero-scroll');
   const stickyHero = hero.querySelector('.hero-grid');
   const storyScenes = [...document.querySelectorAll('[data-scene]')];
@@ -37,7 +38,10 @@
     return {face,x,y,A:[rx*c,-ry*n,rx*n,ry*c],inv:[c/rx,n/rx,-n/ry,c/ry]};
   });
   document.querySelector('.truck-wheels').append(wheelSurface);
+  let lastWheelAngle = null;
   function rotateRims(angle){
+    if(angle === lastWheelAngle)return;
+    lastWheelAngle = angle;
     const c=Math.cos(angle),n=Math.sin(angle);
     wheelRotators.forEach(({face,x,y,A,inv})=>{
       const u=A[0]*c+A[1]*n,v=-A[0]*n+A[1]*c;
@@ -88,6 +92,7 @@
   const usbOccluder=hero.querySelector('#usb-indicator-occluder');
   const laptopCompositions=[...document.querySelectorAll('.laptop-composition')];
   const ledDisplay = document.querySelector('#led-display');
+  const weightLabels = ['#indicator-weight','#software-weight','#software-readout'].map(selector=>document.querySelector(selector));
   const sceneCopy = [
     {lead:'Controle cada ',accent:'pesagem.',description:'Da chegada à balança ao registro da operação.'},
     {lead:'Peso direto da ',accent:'balança.',description:'Leitura automática, sem digitação manual.'},
@@ -112,6 +117,8 @@
   let renderedProgress = null, targetProgress = 0, previousFrameTime = 0, viewportRatio=1, arrivalUnit=1;
   let workflowScale=1, screenQuad=[], workflowCamera={x:3200,y:266.5,zoom:1.16}, demoAnchors={};
   let usbPlugScale=1,usbInsertDistance=32,usbDock={x:0,y:0,dx:1,dy:0,angle:0};
+  let workflowGeometry = {}, measurePending = false, animationFrame = 0;
+  let lastArrowProgress = null, lastArrowPoint, lastUsbProgress = null, lastUsbPoint;
   const ease = n => { const t=clamp(n); return t*t*t*(t*(t*6-15)+10); };
   const easeRange = (p, from, to) => ease(portion(p,from,to));
 
@@ -155,9 +162,9 @@
       [...group.children].forEach(segment => segment.setAttribute('class',lit.includes(segment.dataset.segment)?'led-on':'led-off'));
     });
     decimal.setAttribute('class',value >= 1000 ? 'led-on' : 'led-off');
-    document.querySelector('#indicator-weight').textContent = `${formatted} kg`;
-    document.querySelector('#software-weight').textContent = formatted;
-    document.querySelector('#software-readout').textContent = formatted;
+    weightLabels[0].textContent = `${formatted} kg`;
+    weightLabels[1].textContent = formatted;
+    weightLabels[2].textContent = formatted;
   }
   function routePoint(route,progress){
     const sample=progress*120,i=Math.min(119,Math.floor(sample)),f=sample-i;
@@ -165,14 +172,18 @@
       y:route.samples[i].y+(route.samples[i+1].y-route.samples[i].y)*f};
   }
   function drawArrow(t){
+    if(t === lastArrowProgress)return lastArrowPoint;
+    lastArrowProgress = t;
     const travel=easeRange(t,.10,.83),point=routePoint(arrowRoute,travel);
     arrowTrack.setAttribute('stroke-dasharray',`${travel.toFixed(5)} 2`);
     arrowTrack.style.opacity=t>0?'1':'0';
     arrowTip.style.opacity=travel>.002?'1':'0';
     arrowTip.setAttribute('transform',`translate(${point.x.toFixed(3)} ${point.y.toFixed(3)})`);
-    return point;
+    return lastArrowPoint = point;
   }
   function drawUsb(t){
+    if(t === lastUsbProgress)return lastUsbPoint;
+    lastUsbProgress = t;
     const approach=1-usbInsertDistance/usbRoute.length;
     const insertion=easeRange(t,.72,.86);
     const travel=approach*easeRange(t,.06,.72)+(1-approach)*insertion;
@@ -196,7 +207,7 @@
     usbPlug.setAttribute('transform',`matrix(${a.toFixed(6)} ${b.toFixed(6)} ${c.toFixed(6)} ${d.toFixed(6)} ${point.x.toFixed(4)} ${point.y.toFixed(4)})`);
     hero.dataset.usbConnected=String(t>=.86);
     hero.dataset.usbInsertion=insertion.toFixed(3);
-    return {x:point.x+61.85*a-6*c,y:point.y+61.85*b-6*d};
+    return lastUsbPoint = {x:point.x+61.85*a-6*c,y:point.y+61.85*b-6*d};
   }
   function followCable(signal,t,source,destination,arrivalStart=.78) {
     const leave=easeRange(t,0,.22), arrive=easeRange(t,arrivalStart,1);
@@ -209,19 +220,18 @@
   }
   function renderWorkflow(p,screenZoom,ticketOpacity,camera,zoom){
     workflow.style.opacity=String(p<.9?0:1-ticketOpacity);
+    workflow.style.visibility=p<.9||ticketOpacity===1?'hidden':'visible';
     heroLaptopScreen.style.opacity=p<.9?'1':'0';
     workflow.setAttribute('aria-hidden',String(p<1.08||p>=1.82));
     workspace.style.transform=`translate(-50%,-50%) scale(${workflowScale.toFixed(5)})`;
     if(p>=.9&&p<1.08){
-      const w=appSurface.offsetWidth,h=appSurface.offsetHeight;
-      const left=(storyViewport.clientWidth-workspace.offsetWidth*workflowScale)/2;
-      const top=(storyViewport.clientHeight-workspace.offsetHeight*workflowScale)/2;
+      const {w,h,left,top,width,height,offsetLeft,offsetTop}=workflowGeometry;
       const destination=[[0,0],[w,0],[w,h],[0,h]];
       const quad=screenQuad.map((point,i)=>{
-        const screenX=storyViewport.clientWidth/2+(point.x-camera.x/800*storyViewport.clientWidth)*zoom;
-        const screenY=storyViewport.clientHeight/2+(point.y-camera.y/533*storyViewport.clientWidth*2/3)*zoom;
-        const x=(screenX-left)/workflowScale-appSurface.offsetLeft;
-        const y=(screenY-top)/workflowScale-appSurface.offsetTop;
+        const screenX=width/2+(point.x-camera.x/800*width)*zoom;
+        const screenY=height/2+(point.y-camera.y/533*width*2/3)*zoom;
+        const x=(screenX-left)/workflowScale-offsetLeft;
+        const y=(screenY-top)/workflowScale-offsetTop;
         return [x+(destination[i][0]-x)*screenZoom,y+(destination[i][1]-y)*screenZoom];
       });
       // Project the original four screen corners onto the expanding, front-facing rectangle.
@@ -269,7 +279,9 @@
   }
   function renderStory(progress) {
     const overall = clamp(progress);
-    const p = overall*STORY_LENGTH;
+    const timeline = overall*STORY_LENGTH;
+    // Keep all six steps accessible when the device requests less motion.
+    const p = motionPreference.matches ? (timeline<.435?.24:timeline<.755?.58:timeline<1.135?.89:timeline<1.43?1.39:timeline<1.79?1.74:1.92) : timeline;
     const firstTransfer=portion(p,.26,.45);
     const secondTransfer=portion(p,.58,.77);
     const firstSignal=drawArrow(firstTransfer);
@@ -297,6 +309,7 @@
     const panY=viewportRatio*.5-camera.y/533*zoom;
     storyWorld.style.transform = `translate3d(${(400-focusX*zoom)/4000*100}%,${panY*100}%,0) scale(${zoom})`;
     storyWorld.style.opacity = String(1-easeRange(p,.90,1.08));
+    storyWorld.style.visibility=p>=1.08?'hidden':'visible';
     renderWorkflow(p,screenZoom,ticketOpacity,camera,zoom);
     // A cosine velocity ramp brakes to zero before the data transfer begins.
     const travelTime = portion(p+.015,0,.215);
@@ -355,14 +368,22 @@
       heroTitleAccent.textContent=copy.accent;
       heroDescription.textContent=copy.description;
       storyAnnouncement.textContent=`Etapa ${active+1} de ${sceneCopy.length}. ${copy.lead}${copy.accent} ${copy.description}`;
-      if(wasInitialized){
-        heroCopy.getAnimations().forEach(animation=>animation.cancel());
+      if(wasInitialized && !motionPreference.matches && heroCopy.animate){
+        if(heroCopy.getAnimations)heroCopy.getAnimations().forEach(animation=>animation.cancel());
         heroCopy.animate([{opacity:.35,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,easing:'ease-out'});
       }
     }
   }
   function measureStory() {
     workflowScale=Math.min(1,(storyViewport.clientWidth-12)/workspace.offsetWidth,(storyViewport.clientHeight-16)/workspace.offsetHeight);
+    workflowGeometry={
+      width:storyViewport.clientWidth,height:storyViewport.clientHeight,
+      w:appSurface.offsetWidth,h:appSurface.offsetHeight,
+      left:(storyViewport.clientWidth-workspace.offsetWidth*workflowScale)/2,
+      top:(storyViewport.clientHeight-workspace.offsetHeight*workflowScale)/2,
+      offsetLeft:appSurface.offsetLeft,offsetTop:appSurface.offsetTop
+    };
+    lastArrowProgress=lastUsbProgress=null;
     function centerInWorkspace(element){
       let x=element.offsetWidth/2,y=element.offsetHeight/2;
       for(let node=element;node&&node!==workspace;node=node.offsetParent){x+=node.offsetLeft;y+=node.offsetTop;}
@@ -440,36 +461,72 @@
     const offset = document.querySelector('.site-header').getBoundingClientRect().height;
     storyStart = hero.getBoundingClientRect().top+window.scrollY-offset;
     storyRange = Math.max(1,hero.getBoundingClientRect().height-stickyHeight-ticketHold);
+    renderedProgress=null;
     requestRender();
   }
   function animateStory(time) {
     const dt=previousFrameTime?Math.max(0,time-previousFrameTime):16.67;
     previousFrameTime=time;
-    if(renderedProgress===null) renderedProgress=targetProgress;
+    if(renderedProgress===null || motionPreference.matches) renderedProgress=targetProgress;
     else renderedProgress+=(targetProgress-renderedProgress)*(1-Math.exp(-dt/95));
     const settled=Math.abs(targetProgress-renderedProgress)<.000015;
     if(settled)renderedProgress=targetProgress;
     renderStory(renderedProgress);
-    if(!settled)requestAnimationFrame(animateStory);
+    if(!settled)animationFrame=requestAnimationFrame(animateStory);
     else {renderPending=false;previousFrameTime=0;}
   }
   function requestRender() {
     targetProgress=clamp((window.scrollY-storyStart)/storyRange);
-    if(renderPending)return;
+    if(renderPending || document.hidden || targetProgress===renderedProgress)return;
     renderPending=true;
-    requestAnimationFrame(animateStory);
+    animationFrame=requestAnimationFrame(animateStory);
+  }
+  function scheduleMeasure() {
+    if(measurePending || document.hidden)return;
+    measurePending=true;
+    requestAnimationFrame(()=>{measurePending=false;measureStory();});
   }
   function configureMotion() {
     hero.classList.add('scroll-driven');
     measureStory();
   }
   window.addEventListener('scroll',requestRender,{passive:true});
-  window.addEventListener('resize',measureStory,{passive:true});
-  window.addEventListener('pageshow',measureStory);
-  document.addEventListener('visibilitychange',() => {if(!document.hidden)measureStory();});
+  window.addEventListener('resize',scheduleMeasure,{passive:true});
+  window.addEventListener('pageshow',scheduleMeasure);
+  document.addEventListener('visibilitychange',() => {
+    document.documentElement.classList.toggle('page-hidden',document.hidden);
+    if(document.hidden){cancelAnimationFrame(animationFrame);renderPending=false;previousFrameTime=0;}
+    else scheduleMeasure();
+  });
+  if(motionPreference.addEventListener)motionPreference.addEventListener('change',scheduleMeasure);
+  else motionPreference.addListener(scheduleMeasure);
   configureMotion();
-  if (document.fonts) document.fonts.ready.then(measureStory);
-  if ('ResizeObserver' in window) new ResizeObserver(measureStory).observe(stickyHero);
+  if (document.fonts) document.fonts.ready.then(scheduleMeasure);
+  if ('ResizeObserver' in window) new ResizeObserver(scheduleMeasure).observe(stickyHero);
+  if ('IntersectionObserver' in window) {
+    const visibilityObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      entry.target.classList.toggle('is-offscreen',!entry.isIntersecting);
+      if(entry.target===hero)document.documentElement.classList.toggle('hero-in-view',entry.isIntersecting);
+    }),{rootMargin:'120px'});
+    visibilityObserver.observe(hero);
+    visibilityObserver.observe(document.querySelector('#clientes'));
+  }
+
+  // Download the YouTube player only after an explicit play action.
+  const videoTrigger=document.querySelector('.video-trigger');
+  videoTrigger.addEventListener('click',event=>{
+    if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+    event.preventDefault();
+    const frame=document.createElement('iframe');
+    frame.src='https://www.youtube-nocookie.com/embed/2ng8tgBNU6s?autoplay=1&rel=0&playsinline=1';
+    frame.title='Automação de balanças rodoviárias na CERBRAS com SIAMAC';
+    frame.width='960';frame.height='540';
+    frame.allow='autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.allowFullscreen=true;
+    frame.referrerPolicy='strict-origin-when-cross-origin';
+    videoTrigger.replaceWith(frame);
+    frame.focus({preventScroll:true});
+  });
 
   ticketExpand.addEventListener('click',()=>{
     const preview=ticketDialog.querySelector('.ticket-dialog-page');
