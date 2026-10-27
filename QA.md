@@ -1,5 +1,11 @@
 # Verificação da landing page OWL
 
+## Transições por clique mais lentas — 27/10/2026
+
+- Duração aumentada em 35% em todos os percursos, mantendo a curva suave de aceleração e desaceleração e a distância da rolagem manual.
+- Conferida a chegada ao indicador em 1280 × 900 e ao ticket em 390 × 700. No celular, folha dentro da área da animação, CTA visível e nenhum transbordamento horizontal ou erro de console.
+- Build e sintaxe dos arquivos JavaScript fonte e minificado validados.
+
 ## Etapas clicáveis da animação — 27/10/2026
 
 - Seis botões abaixo da animação, com a etapa atual indicada por texto, número e `aria-current="step"`. Cada destino foi conferido em 1280 × 900: balança, indicador, notebook OWL, veículo, pesagem final e ticket.

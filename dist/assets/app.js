@@ -567,7 +567,8 @@
       requestRender();
       return;
     }
-    const duration=Math.min(3600,Math.max(650,Math.abs(to-from)*1.15));
+    // Give each journey 35% more time while keeping the same smooth easing.
+    const duration=1.35*Math.min(3600,Math.max(650,Math.abs(to-from)*1.15));
     let started=null;
     const advance=time=>{
       if(request!==stepRequest)return;
