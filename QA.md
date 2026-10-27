@@ -1,5 +1,13 @@
 # Verificação da landing page OWL
 
+## Etapas clicáveis da animação — 27/10/2026
+
+- Seis botões abaixo da animação, com a etapa atual indicada por texto, número e `aria-current="step"`. Cada destino foi conferido em 1280 × 900: balança, indicador, notebook OWL, veículo, pesagem final e ticket.
+- Transição progressiva nos dois sentidos, acionamento por Enter e troca de destino durante o movimento conferidos. A rolagem manual interrompe o percurso; não há fila de cliques nem bloqueio da página.
+- Em 320 × 568, todos os botões cabem em uma linha, com 46 px de altura, sem transbordamento horizontal. Folha completa e CTA visíveis no final. A distância de rolagem e a pausa final permanecem iguais.
+- Em 844 × 390, controles, folha e CTA visíveis. Em 568 × 320, cabeçalho e controles compactados e escala mínima da folha ajustada: ticket dentro da área da animação, sem sobrepor “Ampliar ticket”. A ampliação continua disponível para leitura.
+- Build, sintaxe dos dois arquivos JavaScript, caminhos locais, âncoras e console conferidos sem erros.
+
 ## Ticket com fotos — 27/10/2026
 
 - As três páginas do PDF enviado foram renderizadas e inspecionadas. A adaptação mostra quatro fotos no resumo do hero e todas as oito fotos nos anexos da ampliação, com cabeçalhos SIAMAC e dados demonstrativos substituindo os dados textuais do original.

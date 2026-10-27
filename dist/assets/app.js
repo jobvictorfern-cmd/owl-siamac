@@ -84,6 +84,9 @@
     });
   }
   const storyProgress = document.querySelector('.story-progress i');
+  const storySteps = hero.querySelector('.story-steps');
+  const stepButtons = [...storySteps.querySelectorAll('[data-story-step]')];
+  const stepPositions = [.24,.58,.89,1.39,1.68,STORY_LENGTH];
   const storyAnnouncement = document.querySelector('#story-announcement');
   const heroCopy = hero.querySelector('.hero-copy');
   const heroTitleLead = hero.querySelector('.hero-title-lead');
@@ -150,6 +153,7 @@
   let workflowScale=1, screenQuad=[], workflowCamera={x:3200,y:266.5,zoom:1.16}, demoAnchors={};
   let usbPlugScale=1,usbInsertDistance=32,usbDock={x:0,y:0,dx:1,dy:0,angle:0};
   let workflowGeometry = {}, measurePending = false, animationFrame = 0, measuredSize = '';
+  let stepScrollFrame = 0, stepRequest = 0;
   let lastArrowProgress = null, lastArrowPoint, lastUsbProgress = null, lastUsbPoint;
   const ease = n => { const t=clamp(n); return t*t*t*(t*(t*6-15)+10); };
   const easeRange = (p, from, to) => ease(portion(p,from,to));
@@ -396,6 +400,10 @@
     if(active!==previousScene){
       const wasInitialized=previousScene!==-1;
       previousScene=active;
+      stepButtons.forEach((button,index)=>{
+        if(index===active)button.setAttribute('aria-current','step');
+        else button.removeAttribute('aria-current');
+      });
       const copy=sceneCopy[active];
       heroTitleLead.textContent=copy.lead;
       heroTitleAccent.textContent=copy.accent;
@@ -427,7 +435,7 @@
     }
     demoAnchors={list:centerInWorkspace(rowHighlight),plate:centerInWorkspace(plateInput),trailer:centerInWorkspace(trailerInput),license:centerInWorkspace(workflow.querySelector('.owl-license-plate')),confirm:centerInWorkspace(confirmWeighing)};
     // Preserve the full paper proportions, including space for the printer and zoom control.
-    const ticketScale=Math.max(.1,Math.min(1,(storyViewport.clientWidth-48)/594,(storyViewport.clientHeight-64)/833));
+    const ticketScale=Math.max(.02,Math.min(1,(storyViewport.clientWidth-48)/594,(storyViewport.clientHeight-64)/833));
     ticketPrinter.style.setProperty('--ticket-scale',String(ticketScale));
     ticketPrinter.style.setProperty('--ticket-page-width',`${594*ticketScale+6}px`);
     ticketPrinter.style.setProperty('--ticket-page-height',`${833*ticketScale+20}px`);
@@ -527,12 +535,64 @@
     hero.classList.add('scroll-driven');
     measureStory();
   }
+  function cancelStepNavigation(){
+    stepRequest++;
+    cancelAnimationFrame(stepScrollFrame);
+    stepScrollFrame=0;
+    storySteps.removeAttribute('aria-busy');
+    stepButtons.forEach(button=>button.removeAttribute('data-destination'));
+  }
+  async function navigateToStep(index){
+    cancelStepNavigation();
+    const request=stepRequest,button=stepButtons[index];
+    button.setAttribute('data-destination','');
+    // Wait for later scenes before starting a continuous journey through them.
+    if(index>1 && !storyMediaReady){
+      storySteps.setAttribute('aria-busy','true');
+      await loadStoryMedia();
+      if(request!==stepRequest)return;
+      storySteps.removeAttribute('aria-busy');
+      if(!storyMediaReady){
+        cancelStepNavigation();
+        storyAnnouncement.textContent='Não foi possível carregar esta etapa. Tente novamente.';
+        return;
+      }
+    }
+    const from=window.scrollY;
+    // The final destination is before the separate hold: keep the whole ticket pinned.
+    const to=Math.max(0,storyStart+storyRange*stepPositions[index]/STORY_LENGTH);
+    if(motionPreference.matches || Math.abs(to-from)<1){
+      window.scrollTo({top:to,behavior:'instant'});
+      cancelStepNavigation();
+      requestRender();
+      return;
+    }
+    const duration=Math.min(3600,Math.max(650,Math.abs(to-from)*1.15));
+    let started=null;
+    const advance=time=>{
+      if(request!==stepRequest)return;
+      if(started===null)started=time;
+      const progress=clamp((time-started)/duration);
+      window.scrollTo({top:from+(to-from)*ease(progress),behavior:'instant'});
+      requestRender();
+      if(progress<1)stepScrollFrame=requestAnimationFrame(advance);
+      else {stepScrollFrame=0;button.removeAttribute('data-destination');}
+    };
+    stepScrollFrame=requestAnimationFrame(advance);
+  }
+  stepButtons.forEach((button,index)=>button.addEventListener('click',()=>navigateToStep(index)));
+  // Manual input always takes over; no scroll lock and no queued destinations.
+  ['wheel','touchstart','pointerdown'].forEach(event=>window.addEventListener(event,cancelStepNavigation,{passive:true}));
+  window.addEventListener('keydown',event=>{
+    if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' ','Escape','Tab'].includes(event.key))cancelStepNavigation();
+  });
+  window.addEventListener('resize',cancelStepNavigation,{passive:true});
   window.addEventListener('scroll',requestRender,{passive:true});
   window.addEventListener('resize',scheduleMeasure,{passive:true});
   window.addEventListener('pageshow',event=>{if(event.persisted)scheduleMeasure();});
   document.addEventListener('visibilitychange',() => {
     document.documentElement.classList.toggle('page-hidden',document.hidden);
-    if(document.hidden){cancelAnimationFrame(animationFrame);renderPending=false;previousFrameTime=0;}
+    if(document.hidden){cancelStepNavigation();cancelAnimationFrame(animationFrame);renderPending=false;previousFrameTime=0;}
     else scheduleMeasure();
   });
   if(motionPreference.addEventListener)motionPreference.addEventListener('change',scheduleMeasure);
