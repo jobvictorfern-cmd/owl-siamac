@@ -1,5 +1,10 @@
 # Verificação da landing page OWL
 
+## Aumento adicional de 5% — 27/10/2026
+
+- Escala ajustada de 0,77 para 0,8085, aumentando somente a distância da animação em 5%. Etapas, tamanho do ticket e pausa final preservados.
+- Em 390 × 700, percurso de 2402,984 px, ticket completo e botão visível no progresso final, pausa de 100 px e console sem erros. Build e sintaxe JavaScript validados.
+
 ## Ajuste fino da rolagem — 27/10/2026
 
 - Distância aumentada em 10% sobre a versão compacta (escala de 0,70 para 0,77), preservando etapas, enquadramento e pausa final do ticket.

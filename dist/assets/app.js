@@ -4,7 +4,7 @@
   const WEIGHING = { initial: 28840, final: 32840 };
   WEIGHING.net = WEIGHING.final - WEIGHING.initial;
   const STORY_LENGTH = 1.92;
-  const STORY_SCROLL_SCALE = .77;
+  const STORY_SCROLL_SCALE = .8085;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hero = document.querySelector('.hero-scroll');
   const deferredMedia = [...hero.querySelectorAll('[data-story-src]')];
