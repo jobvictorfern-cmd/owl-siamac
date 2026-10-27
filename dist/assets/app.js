@@ -1,0 +1,554 @@
+(() => {
+  'use strict';
+  const CONTACT = { phone: '5511918512948', product: 'OWL' };
+  const WEIGHING = { initial: 28840, final: 32840 };
+  WEIGHING.net = WEIGHING.final - WEIGHING.initial;
+  const STORY_LENGTH = 1.92;
+  const hero = document.querySelector('.hero-scroll');
+  const stickyHero = hero.querySelector('.hero-grid');
+  const storyScenes = [...document.querySelectorAll('[data-scene]')];
+  const truck = document.querySelector('.truck-layer');
+  const cab = document.querySelector('.truck-cab');
+  const storyViewport=document.querySelector('.story-viewport');
+  const svgNS='http://www.w3.org/2000/svg';
+  // Seven photographed rim faces; the surrounding rubber and central hubs stay fixed.
+  const wheelSpecs=[
+    [664,730,27,43,-3], [912,722,20,35,-2], [994,720,19.5,35,-2],
+    [1249,713,13,29,-1], [1354,713,12.5,28,-1], [1399,711,11.5,27,-1], [1438,710,10.5,26,-1]
+  ];
+  const wheelSurface=document.createElementNS(svgNS,'svg');
+  wheelSurface.setAttribute('viewBox','0 0 1536 1024');
+  wheelSurface.setAttribute('class','wheel-surface');
+  wheelSurface.setAttribute('aria-hidden','true');
+  const wheelDefs=document.createElementNS(svgNS,'defs');
+  wheelDefs.innerHTML='<radialGradient id="rim-feather"><stop offset="0" stop-color="black"/><stop offset=".22" stop-color="black"/><stop offset=".30" stop-color="white"/><stop offset=".88" stop-color="white"/><stop offset="1" stop-color="black"/></radialGradient><image id="rim-photo" href="assets/truck-layer.webp" width="1536" height="1024"/>';
+  wheelSurface.append(wheelDefs);
+  const wheelRotators=wheelSpecs.map(([x,y,rx,ry,tilt],i)=>{
+    const mask=document.createElementNS(svgNS,'mask');
+    mask.id=`rim-mask-${i}`;mask.setAttribute('maskUnits','userSpaceOnUse');
+    mask.setAttribute('x','0');mask.setAttribute('y','0');mask.setAttribute('width','1536');mask.setAttribute('height','1024');
+    const ellipse=document.createElementNS(svgNS,'ellipse');
+    Object.entries({cx:x,cy:y,rx,ry,transform:`rotate(${tilt} ${x} ${y})`,fill:'url(#rim-feather)'}).forEach(([k,v])=>ellipse.setAttribute(k,v));
+    mask.append(ellipse);wheelDefs.append(mask);
+    const group=document.createElementNS(svgNS,'g');group.setAttribute('mask',`url(#rim-mask-${i})`);
+    const face=document.createElementNS(svgNS,'use');face.setAttribute('href','#rim-photo');
+    group.append(face);wheelSurface.append(group);
+    const a=tilt*Math.PI/180,c=Math.cos(a),n=Math.sin(a);
+    return {face,x,y,A:[rx*c,-ry*n,rx*n,ry*c],inv:[c/rx,n/rx,-n/ry,c/ry]};
+  });
+  document.querySelector('.truck-wheels').append(wheelSurface);
+  function rotateRims(angle){
+    const c=Math.cos(angle),n=Math.sin(angle);
+    wheelRotators.forEach(({face,x,y,A,inv})=>{
+      const u=A[0]*c+A[1]*n,v=-A[0]*n+A[1]*c;
+      const w=A[2]*c+A[3]*n,z=-A[2]*n+A[3]*c;
+      const a=u*inv[0]+v*inv[2],b=w*inv[0]+z*inv[2];
+      const k=u*inv[1]+v*inv[3],d=w*inv[1]+z*inv[3];
+      face.setAttribute('transform',`matrix(${a.toFixed(6)} ${b.toFixed(6)} ${k.toFixed(6)} ${d.toFixed(6)} ${(x-a*x-k*y).toFixed(4)} ${(y-b*x-d*y).toFixed(4)})`);
+    });
+  }
+  const storyProgress = document.querySelector('.story-progress i');
+  const storyAnnouncement = document.querySelector('#story-announcement');
+  const heroCopy = hero.querySelector('.hero-copy');
+  const heroTitleLead = hero.querySelector('.hero-title-lead');
+  const heroTitleAccent = hero.querySelector('.hero-title-accent');
+  const heroDescription = hero.querySelector('.hero-description');
+  const paper = document.querySelector('.weighing-ticket');
+  const ticketPrinter = document.querySelector('.ticket-printer');
+  const ticketExpand = document.querySelector('.ticket-expand');
+  const ticketDialog = document.querySelector('#ticket-preview');
+  const storyWorld = document.querySelector('.story-world');
+  const workflow = document.querySelector('.owl-workflow');
+  const workspace = workflow.querySelector('.owl-workspace');
+  const appSurface = workflow.querySelector('.owl-app-surface');
+  const heroLaptopScreen = hero.querySelector('.laptop-screen');
+  const vehicleWindow = workflow.querySelector('.owl-vehicle-window');
+  const finalWindow = workflow.querySelector('.owl-final-window');
+  const typedPlate = workflow.querySelector('#owl-typed-plate');
+  const typedTrailer = workflow.querySelector('#owl-typed-trailer');
+  const plateInput = workflow.querySelector('.owl-plate-input');
+  const trailerInput = workflow.querySelector('.owl-trailer-input');
+  const foundVehicle = workflow.querySelector('.owl-found-vehicle');
+  const workspaceShade = workflow.querySelector('.owl-workspace-shade');
+  const rowHighlight = workflow.querySelector('.owl-row-highlight');
+  const confirmWeighing = workflow.querySelector('.owl-confirm');
+  const demoPointer = workflow.querySelector('.owl-demo-pointer');
+  const clickRing = demoPointer.querySelector('i');
+  const computerCaption = document.querySelector('.computer-weight-caption');
+  const arrowTrack=document.querySelector('#scale-arrow-track');
+  const arrowTip=document.querySelector('#scale-arrow-tip');
+  const physicalIndicator=hero.querySelector('.physical-indicator');
+  const usbCable=hero.querySelector('.usb-cable');
+  const usbPlug=hero.querySelector('.usb-plug');
+  const usbPlugLayer=hero.querySelector('.usb-connector-visibility');
+  const usbSocketClip=hero.querySelector('#usb-socket-clip path');
+  // Match the socket's diagonal cross-section without reducing the grip's height.
+  const usbPerspective=.42;
+  const usbPhotoAxis=Math.atan2(Math.sin(-7*Math.PI/180),Math.cos(-7*Math.PI/180)+usbPerspective*Math.sin(-7*Math.PI/180));
+  const usbOccluder=hero.querySelector('#usb-indicator-occluder');
+  const laptopCompositions=[...document.querySelectorAll('.laptop-composition')];
+  const ledDisplay = document.querySelector('#led-display');
+  const sceneCopy = [
+    {lead:'Controle cada ',accent:'pesagem.',description:'Da chegada à balança ao registro da operação.'},
+    {lead:'Peso direto da ',accent:'balança.',description:'Leitura automática, sem digitação manual.'},
+    {lead:'Informação no ',accent:'OWL.',description:'O peso da balança, na tela do seu sistema.'},
+    {lead:'Identifique o ',accent:'veículo.',description:'Placa e reboque vinculados à operação.'},
+    {lead:'Confirme a ',accent:'pesagem.',description:'Confira os pesos e finalize o registro.'},
+    {lead:'Pesagem ',accent:'registrada.',description:'O registro da operação, pronto para consulta.'}
+  ];
+  const clamp = n => Math.max(0, Math.min(1, n));
+  const portion = (p, from, to) => clamp((p - from) / (to - from));
+  const smooth = (p, from, to) => { const n = portion(p, from, to); return n * n * (3 - 2 * n); };
+  const numberFormat = new Intl.NumberFormat('pt-BR');
+  // The printed values and animated readouts share the same weighing data.
+  paper.querySelectorAll('[data-ticket-weight]').forEach(field=>{
+    field.textContent=`${numberFormat.format(WEIGHING[field.dataset.ticketWeight])} kg`;
+  });
+  paper.setAttribute('aria-label',`Exemplo de ticket SIAMAC: peso inicial de ${numberFormat.format(WEIGHING.initial)} quilos, peso final de ${numberFormat.format(WEIGHING.final)} quilos e peso líquido de ${numberFormat.format(WEIGHING.net)} quilos`);
+  workflow.querySelectorAll('[data-demo-weight]').forEach(field=>{
+    field.textContent=`${numberFormat.format(WEIGHING[field.dataset.demoWeight])} kg`;
+  });
+  let storyStart = 0, storyRange = 1, renderPending = false, previousScene = -1, previousWeight = -1;
+  let renderedProgress = null, targetProgress = 0, previousFrameTime = 0, viewportRatio=1, arrivalUnit=1;
+  let workflowScale=1, screenQuad=[], workflowCamera={x:3200,y:266.5,zoom:1.16}, demoAnchors={};
+  let usbPlugScale=1,usbInsertDistance=32,usbDock={x:0,y:0,dx:1,dy:0,angle:0};
+  const ease = n => { const t=clamp(n); return t*t*t*(t*(t*6-15)+10); };
+  const easeRange = (p, from, to) => ease(portion(p,from,to));
+
+  // Cache real path geometry once. Both journeys share the same camera model.
+  function prepareRoute(path,tracks=[]){
+    const length=path.getTotalLength();
+    tracks.forEach(line=>line.setAttribute('pathLength','1'));
+    const samples=Array.from({length:121},(_,i)=>{const point=path.getPointAtLength(length*i/120);return{x:point.x,y:point.y};});
+    return {path,tracks,samples,length};
+  }
+  const arrowRoute=prepareRoute(arrowTrack,[arrowTrack]);
+  const usbTracks=[...document.querySelectorAll('.usb-track')];
+  const usbRoute=prepareRoute(usbTracks[0],usbTracks);
+  // Seven physical LED segments, drawn once. Only the segment classes change.
+  const segments = {
+    a: 'M9 2h36l6 5-6 5H9L3 7Z', b: 'M49 9l5 6v23l-5 6-5-6V15Z',
+    c: 'M49 48l5 6v24l-5 6-5-6V54Z', d: 'M9 80h36l6 5-6 5H9L3 85Z',
+    e: 'M5 48l5 6v24l-5 6-5-6V54Z', f: 'M5 9l5 6v23l-5 6-5-6V15Z',
+    g: 'M9 41h36l6 5-6 5H9L3 46Z'
+  };
+  const digits = { 0:'abcdef', 1:'bc', 2:'abdeg', 3:'abcdg', 4:'bcfg', 5:'acdfg', 6:'acdefg', 7:'abc', 8:'abcdefg', 9:'abcdfg' };
+  const digitPositions = [5,70,151,216,281];
+  const digitGroups = digitPositions.map(x => {
+    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+    group.setAttribute('transform',`translate(${x} 3)`);
+    Object.entries(segments).forEach(([segment, d]) => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',d); path.dataset.segment = segment; path.setAttribute('class','led-off'); group.append(path);
+    });
+    ledDisplay.append(group); return group;
+  });
+  const decimal = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  decimal.setAttribute('cx','139');decimal.setAttribute('cy','86');decimal.setAttribute('r','3.8');decimal.setAttribute('class','led-off');ledDisplay.append(decimal);
+  function drawWeight(value) {
+    if (value === previousWeight) return;
+    previousWeight = value;
+    const formatted = numberFormat.format(value);
+    const characters = String(value).padStart(5,' ');
+    digitGroups.forEach((group, index) => {
+      const lit = digits[characters[index]] || '';
+      [...group.children].forEach(segment => segment.setAttribute('class',lit.includes(segment.dataset.segment)?'led-on':'led-off'));
+    });
+    decimal.setAttribute('class',value >= 1000 ? 'led-on' : 'led-off');
+    document.querySelector('#indicator-weight').textContent = `${formatted} kg`;
+    document.querySelector('#software-weight').textContent = formatted;
+    document.querySelector('#software-readout').textContent = formatted;
+  }
+  function routePoint(route,progress){
+    const sample=progress*120,i=Math.min(119,Math.floor(sample)),f=sample-i;
+    return{x:route.samples[i].x+(route.samples[i+1].x-route.samples[i].x)*f,
+      y:route.samples[i].y+(route.samples[i+1].y-route.samples[i].y)*f};
+  }
+  function drawArrow(t){
+    const travel=easeRange(t,.10,.83),point=routePoint(arrowRoute,travel);
+    arrowTrack.setAttribute('stroke-dasharray',`${travel.toFixed(5)} 2`);
+    arrowTrack.style.opacity=t>0?'1':'0';
+    arrowTip.style.opacity=travel>.002?'1':'0';
+    arrowTip.setAttribute('transform',`translate(${point.x.toFixed(3)} ${point.y.toFixed(3)})`);
+    return point;
+  }
+  function drawUsb(t){
+    const approach=1-usbInsertDistance/usbRoute.length;
+    const insertion=easeRange(t,.72,.86);
+    const travel=approach*easeRange(t,.06,.72)+(1-approach)*insertion;
+    let point=routePoint(usbRoute,travel);
+    const before=routePoint(usbRoute,Math.max(0,travel-.002));
+    const after=routePoint(usbRoute,Math.min(1,travel+.002));
+    let angle=Math.atan2(after.y-before.y,after.x-before.x);
+    if(t>=.72){
+      // Follow the socket normal exactly during insertion, without a pause or curved drift.
+      point={x:usbDock.x+usbDock.dx*usbInsertDistance*insertion,y:usbDock.y+usbDock.dy*usbInsertDistance*insertion};
+      angle=usbDock.angle;
+    }
+    const rotation=angle-usbPhotoAxis;
+    const a=Math.cos(rotation)*usbPlugScale,b=Math.sin(rotation)*usbPlugScale;
+    const c=(Math.cos(rotation)*usbPerspective-Math.sin(rotation))*usbPlugScale;
+    const d=(Math.sin(rotation)*usbPerspective+Math.cos(rotation))*usbPlugScale;
+    usbCable.style.opacity=t>0?'1':'0';
+    usbPlugLayer.style.opacity=t>0?'1':'0';
+    // The notebook's stationary socket mask occludes the entering metal.
+    usbRoute.tracks.forEach(line=>line.setAttribute('stroke-dasharray',`${travel.toFixed(6)} 2`));
+    usbPlug.setAttribute('transform',`matrix(${a.toFixed(6)} ${b.toFixed(6)} ${c.toFixed(6)} ${d.toFixed(6)} ${point.x.toFixed(4)} ${point.y.toFixed(4)})`);
+    hero.dataset.usbConnected=String(t>=.86);
+    hero.dataset.usbInsertion=insertion.toFixed(3);
+    return {x:point.x+61.85*a-6*c,y:point.y+61.85*b-6*d};
+  }
+  function followCable(signal,t,source,destination,arrivalStart=.78) {
+    const leave=easeRange(t,0,.22), arrive=easeRange(t,arrivalStart,1);
+    const mix=(from,to,k)=>from+(to-from)*k;
+    return {
+      x:mix(mix(source.x,signal.x,leave),destination.x,arrive),
+      y:mix(mix(source.y,signal.y,leave),destination.y,arrive),
+      zoom:mix(mix(source.zoom??1.16,1.8,leave),destination.zoom??1.16,arrive)
+    };
+  }
+  function renderWorkflow(p,screenZoom,ticketOpacity,camera,zoom){
+    workflow.style.opacity=String(p<.9?0:1-ticketOpacity);
+    heroLaptopScreen.style.opacity=p<.9?'1':'0';
+    workflow.setAttribute('aria-hidden',String(p<1.08||p>=1.82));
+    workspace.style.transform=`translate(-50%,-50%) scale(${workflowScale.toFixed(5)})`;
+    if(p>=.9&&p<1.08){
+      const w=appSurface.offsetWidth,h=appSurface.offsetHeight;
+      const left=(storyViewport.clientWidth-workspace.offsetWidth*workflowScale)/2;
+      const top=(storyViewport.clientHeight-workspace.offsetHeight*workflowScale)/2;
+      const destination=[[0,0],[w,0],[w,h],[0,h]];
+      const quad=screenQuad.map((point,i)=>{
+        const screenX=storyViewport.clientWidth/2+(point.x-camera.x/800*storyViewport.clientWidth)*zoom;
+        const screenY=storyViewport.clientHeight/2+(point.y-camera.y/533*storyViewport.clientWidth*2/3)*zoom;
+        const x=(screenX-left)/workflowScale-appSurface.offsetLeft;
+        const y=(screenY-top)/workflowScale-appSurface.offsetTop;
+        return [x+(destination[i][0]-x)*screenZoom,y+(destination[i][1]-y)*screenZoom];
+      });
+      // Project the original four screen corners onto the expanding, front-facing rectangle.
+      const [[x0,y0],[x1,y1],[x2,y2],[x3,y3]]=quad;
+      const dx1=x1-x2,dx2=x3-x2,dx3=x0-x1+x2-x3;
+      const dy1=y1-y2,dy2=y3-y2,dy3=y0-y1+y2-y3;
+      const determinant=dx1*dy2-dx2*dy1;
+      const g=(dx3*dy2-dx2*dy3)/determinant,k=(dx1*dy3-dx3*dy1)/determinant;
+      const matrix=[(x1-x0+g*x1)/w,(y1-y0+g*y1)/w,0,g/w,(x3-x0+k*x3)/h,(y3-y0+k*y3)/h,0,k/h,0,0,1,0,x0,y0,0,1];
+      appSurface.style.transform=`matrix3d(${matrix.join(',')})`;
+    }else appSurface.style.transform='none';
+    const vehicleIn=easeRange(p,1.12,1.16);
+    vehicleWindow.style.opacity=String(vehicleIn*(1-easeRange(p,1.405,1.45)));
+    vehicleWindow.style.transform=`translateY(${10*(1-vehicleIn)}px) scale(${.98+.02*vehicleIn})`;
+    const finalIn=easeRange(p,1.42,1.46);
+    finalWindow.style.opacity=String(finalIn);
+    finalWindow.style.transform=`translateY(${10*(1-finalIn)}px) scale(${.98+.02*finalIn})`;
+    workspaceShade.style.opacity=String(vehicleIn);
+    rowHighlight.style.opacity=String(easeRange(p,1.105,1.12));
+    typedPlate.textContent='ABC1D23'.slice(0,Math.floor(portion(p,1.18,1.29)*7));
+    typedTrailer.textContent='DEF4G56'.slice(0,Math.floor(portion(p,1.29,1.37)*7));
+    plateInput.classList.toggle('is-typing',p>=1.175&&p<1.29);
+    trailerInput.classList.toggle('is-typing',p>=1.29&&p<1.39);
+    foundVehicle.style.opacity=String(easeRange(p,1.29,1.38));
+    confirmWeighing.classList.toggle('is-pressed',p>=1.665&&p<1.705);
+    confirmWeighing.classList.toggle('is-confirmed',p>=1.71);
+    const route=[
+      [1.08,demoAnchors.list],[1.13,demoAnchors.list],
+      [1.18,demoAnchors.plate],[1.27,demoAnchors.plate],
+      [1.30,demoAnchors.trailer],[1.39,demoAnchors.trailer],
+      [1.48,demoAnchors.license],[1.56,demoAnchors.license],
+      [1.65,demoAnchors.confirm],[1.78,demoAnchors.confirm]
+    ];
+    const routeIndex=route.findIndex(([time])=>time>=p);
+    const next=routeIndex<0?route.length-1:Math.max(1,routeIndex);
+    const from=route[next-1],to=route[next];
+    const t=easeRange(p,from[0],to[0]);
+    const x=from[1].x+(to[1].x-from[1].x)*t;
+    const y=from[1].y+(to[1].y-from[1].y)*t;
+    demoPointer.style.transform=`translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`;
+    demoPointer.style.opacity=String(easeRange(p,1.08,1.10)*(1-easeRange(p,1.72,1.77)));
+    const click=p<1.4?portion(p,1.11,1.14):portion(p,1.665,1.715);
+    clickRing.style.opacity=String(Math.sin(click*Math.PI)*.8);
+    clickRing.style.transform=`scale(${.5+click*1.5})`;
+  }
+  function renderStory(progress) {
+    const overall = clamp(progress);
+    const p = overall*STORY_LENGTH;
+    const firstTransfer=portion(p,.26,.45);
+    const secondTransfer=portion(p,.58,.77);
+    const firstSignal=drawArrow(firstTransfer);
+    const secondSignal=drawUsb(secondTransfer);
+    const ticketOpacity=smooth(p,1.79,1.83);
+    const screenZoom=easeRange(p,.90,1.08);
+    const active=p<.435?0:p<.755?1:p<1.135?2:p<1.43?3:p<1.71?4:5;
+    const scaleView={x:400,y:270,zoom:.97};
+    const indicatorView={x:1800,y:289.5};
+    const computerView={x:3200,y:266.5};
+    let camera;
+    if(p<.26)camera={...scaleView};
+    else if(p<=.45)camera=followCable(firstSignal,firstTransfer,scaleView,indicatorView);
+    else if(p<.58)camera={...indicatorView,zoom:1.16};
+    else if(p<=.77)camera=followCable(secondSignal,secondTransfer,indicatorView,computerView,.88);
+    else camera={...computerView,zoom:1.16};
+    if(p>.90){
+      camera.x+=(workflowCamera.x-camera.x)*screenZoom;
+      camera.y+=(workflowCamera.y-camera.y)*screenZoom;
+      camera.zoom+=(workflowCamera.zoom-camera.zoom)*screenZoom;
+    }
+    // Fit the same photographed scenes into a wide, height-limited viewport.
+    const zoom=camera.zoom*Math.min(1,viewportRatio/.76);
+    const focusX=camera.x;
+    const panY=viewportRatio*.5-camera.y/533*zoom;
+    storyWorld.style.transform = `translate3d(${(400-focusX*zoom)/4000*100}%,${panY*100}%,0) scale(${zoom})`;
+    storyWorld.style.opacity = String(1-easeRange(p,.90,1.08));
+    renderWorkflow(p,screenZoom,ticketOpacity,camera,zoom);
+    // A cosine velocity ramp brakes to zero before the data transfer begins.
+    const travelTime = portion(p+.015,0,.215);
+    const brake = portion(travelTime,.65,1);
+    const arrival = travelTime <= .65 ? travelTime/.825 : (.65+.35*(brake/2+Math.sin(Math.PI*brake)/(2*Math.PI)))/.825;
+    const remaining=1000*(1-arrival);
+    const vehicleScale=.83/(1+.00023*remaining);
+    const frontX=631.12+remaining;
+    const a=vehicleScale,b=vehicleScale*(-.018),k=0,d=vehicleScale;
+    const frontY=668.2-.079*remaining;
+    const tx=frontX-a*664-k*804,ty=frontY-b*664-d*804;
+    truck.style.transform=`matrix(${a.toFixed(7)},${b.toFixed(7)},${k.toFixed(7)},${d.toFixed(7)},${(tx*arrivalUnit).toFixed(3)},${(ty*arrivalUnit).toFixed(3)})`;
+    let cabPitch=-.8*Math.sin(Math.PI*brake/2);
+    if(p>=.2){const settle=portion(p,.2,.27);cabPitch=settle>=1?0:-.8*Math.exp(-5*settle)*Math.cos(2*Math.PI*1.35*settle);}
+    cab.style.transform=`rotate(${cabPitch.toFixed(4)}deg) translateY(${Math.max(0,-cabPitch)*.7}px)`;
+    // Perspective-correct photo rotation on each rim. The final phase is the
+    // original photograph, and angular motion decreases with the actual travel.
+    const wheelAngle=(remaining+.000115*remaining*remaining)/(.83*75*.62);
+    rotateRims(wheelAngle);
+    hero.dataset.rampPitch='0.000';
+    hero.dataset.wheelAngle=(wheelAngle*180/Math.PI).toFixed(2);
+    hero.dataset.frontContact=`${frontX.toFixed(2)},${frontY.toFixed(2)}`;
+    hero.dataset.cabPitch=cabPitch.toFixed(4);
+    hero.dataset.vehicleStopped=String(p>=.2);
+    // Only the connection occupies the middle of a journey. Reveal its destination
+    // after reaching the end, as the camera opens back onto the equipment.
+    const stationOpacity=[
+      1-easeRange(firstTransfer,.16,.36),
+      easeRange(firstTransfer,.86,1)*(1-easeRange(secondTransfer,.16,.36)),
+      easeRange(secondTransfer,.60,.72)
+    ];
+    storyScenes.forEach(scene => {
+      const index=Number(scene.dataset.scene);
+      if(index===5){scene.style.opacity=String(ticketOpacity);scene.style.transform='none';}
+      else scene.style.opacity=String(stationOpacity[index]);
+      scene.setAttribute('aria-hidden',String(index!==active||(index===2&&p>=1.08)||(index===5&&p<1.79)));
+    });
+    computerCaption.style.opacity=String(p>=.77?1-screenZoom:0);
+    hero.style.setProperty('--indicator-power',String(.20+.80*easeRange(p,.425,.45)));
+    hero.style.setProperty('--computer-power',String(.70+.30*easeRange(p,.745,.77)));
+    const ticketReveal = smooth(p,1.82,1.91);
+    paper.style.transform = `translateY(${-(1-ticketReveal)*103}%)`;
+    ticketExpand.hidden=p<1.91;
+    let value=p<.45?0:p<.58?WEIGHING.initial*portion(p,.45,.58):p<.77?WEIGHING.initial:WEIGHING.initial+WEIGHING.net*portion(p,.77,.89);
+    value=Math.min(WEIGHING.final,Math.round(value/20)*20);drawWeight(value);
+    storyProgress.style.transform=`scaleX(${overall})`;
+    hero.dataset.storyStage=String(active);hero.dataset.storyProgress=overall.toFixed(3);
+    hero.dataset.storyPhase=p<.9?'physical':p<1.12?'screen':p<1.43?'vehicle':p<1.71?'final':p<1.79?'confirmed':'ticket';
+    const transfer=p>.26&&p<.45?'indicator':p>.58&&p<.77?'computer':'';
+    hero.dataset.storyTransition=transfer;
+    if(active!==previousScene){
+      const wasInitialized=previousScene!==-1;
+      previousScene=active;
+      const copy=sceneCopy[active];
+      heroTitleLead.textContent=copy.lead;
+      heroTitleAccent.textContent=copy.accent;
+      heroDescription.textContent=copy.description;
+      storyAnnouncement.textContent=`Etapa ${active+1} de ${sceneCopy.length}. ${copy.lead}${copy.accent} ${copy.description}`;
+      if(wasInitialized){
+        heroCopy.getAnimations().forEach(animation=>animation.cancel());
+        heroCopy.animate([{opacity:.35,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,easing:'ease-out'});
+      }
+    }
+  }
+  function measureStory() {
+    workflowScale=Math.min(1,(storyViewport.clientWidth-12)/workspace.offsetWidth,(storyViewport.clientHeight-16)/workspace.offsetHeight);
+    function centerInWorkspace(element){
+      let x=element.offsetWidth/2,y=element.offsetHeight/2;
+      for(let node=element;node&&node!==workspace;node=node.offsetParent){x+=node.offsetLeft;y+=node.offsetTop;}
+      return {x,y};
+    }
+    demoAnchors={list:centerInWorkspace(rowHighlight),plate:centerInWorkspace(plateInput),trailer:centerInWorkspace(trailerInput),license:centerInWorkspace(workflow.querySelector('.owl-license-plate')),confirm:centerInWorkspace(confirmWeighing)};
+    // Preserve the full paper proportions, including space for the printer and zoom control.
+    const ticketScale=Math.max(.1,Math.min(1,(storyViewport.clientWidth-48)/594,(storyViewport.clientHeight-64)/833));
+    ticketPrinter.style.setProperty('--ticket-scale',String(ticketScale));
+    ticketPrinter.style.setProperty('--ticket-page-width',`${594*ticketScale+6}px`);
+    ticketPrinter.style.setProperty('--ticket-page-height',`${833*ticketScale+20}px`);
+    const planeHeight=storyViewport.clientWidth*2/3;
+    storyWorld.style.height=`${planeHeight}px`;
+    viewportRatio=storyViewport.clientHeight/planeHeight;
+    arrivalUnit=storyViewport.clientWidth/1536;
+    // Keep the straight arrow centered on the photographed left knob (64, 476).
+    const indicatorStyle=getComputedStyle(physicalIndicator);
+    const indicatorWidth=parseFloat(indicatorStyle.width),indicatorHeight=parseFloat(indicatorStyle.height);
+    const indicatorX=parseFloat(getComputedStyle(physicalIndicator.parentElement).left)+parseFloat(indicatorStyle.left);
+    const arrowEndX=(indicatorX+indicatorWidth*64/1536)/storyViewport.clientWidth*800;
+    const arrowY=(parseFloat(indicatorStyle.top)-indicatorHeight/2+indicatorHeight*476/1024)/planeHeight*533;
+    const arrowPath=`M790 ${arrowY.toFixed(4)} H${arrowEndX.toFixed(4)}`;
+    if(arrowTrack.getAttribute('d')!==arrowPath){
+      arrowTrack.setAttribute('d',arrowPath);
+      Object.assign(arrowRoute,prepareRoute(arrowTrack,[arrowTrack]));
+    }
+    laptopCompositions.forEach(composition=>composition.style.setProperty('--laptop-scale',String(parseFloat(getComputedStyle(composition).width)/1536)));
+    // Calibrate the cable and connector to the laptop's empty USB port.
+    const hardware=getComputedStyle(laptopCompositions[0]);
+    const width=parseFloat(hardware.width),height=parseFloat(hardware.height);
+    // Match the flat workspace to the photographed screen's projected bounds before zooming.
+    screenQuad=[[0,0],[821,0],[821,495],[0,495]].map(([x,y])=>{
+      const denominator=1+.000222939937986*x-.000108093324912*y;
+      const projectedX=(1.27714746692*x+.0586153780481*y+183)/denominator;
+      const projectedY=(.0744080219059*x+1.04507346946*y+114)/denominator;
+      return {x:3.5*storyViewport.clientWidth+parseFloat(hardware.left)+projectedX*width/1536,y:parseFloat(hardware.top)-height/2+projectedY*width/1536};
+    });
+    const screenWidth=Math.max(...screenQuad.map(p=>p.x))-Math.min(...screenQuad.map(p=>p.x));
+    const screenX=screenQuad.reduce((sum,p)=>sum+p.x,0)/4/storyViewport.clientWidth*800;
+    const screenY=screenQuad.reduce((sum,p)=>sum+p.y,0)/4/planeHeight*533;
+    const sceneFit=Math.min(1,viewportRatio/.76);
+    workflowCamera={x:screenX,y:screenY,zoom:appSurface.offsetWidth*workflowScale/screenWidth/sceneFit};
+    const sourceX=(indicatorX+indicatorWidth*1310/1536)/storyViewport.clientWidth*800;
+    const indicatorTop=parseFloat(indicatorStyle.top)-indicatorHeight/2;
+    const sourceY=(indicatorTop+indicatorHeight*655/1024)/planeHeight*533;
+    usbOccluder.setAttribute('transform',`translate(${indicatorX/storyViewport.clientWidth*800} ${indicatorTop/planeHeight*533}) scale(${indicatorWidth/1536/storyViewport.clientWidth*800} ${indicatorHeight/1024/planeHeight*533})`);
+    const portX=2800+(parseFloat(hardware.left)+width*248/1536)/storyViewport.clientWidth*800;
+    const portY=(parseFloat(hardware.top)-height/2+height*754/1024)/planeHeight*533;
+    const socketUnitX=width/1536/storyViewport.clientWidth*800,socketUnitY=height/1024/planeHeight*533;
+    // Photo coordinates of the upper lip and front edge: (239,738), (256,755).
+    // Keep this occlusion in world space, independent of the moving plug.
+    usbSocketClip.setAttribute('d',`M0 0H${portX-9*socketUnitX}V${portY-16*socketUnitY}L${portX+8*socketUnitX} ${portY+socketUnitY}V533H0Z`);
+    usbPlugScale=width/storyViewport.clientWidth*800/1536*1.6;
+    usbCable.style.setProperty('--usb-diameter',`${(6.15*usbPlugScale).toFixed(4)}px`);
+    usbInsertDistance=23*usbPlugScale;
+    const dockAngle=usbPhotoAxis,dx=Math.cos(dockAngle),dy=Math.sin(dockAngle);
+    // Source photo: cable center (450,500), socket shoulder (1380,431).
+    const joinX=portX-(46.5-3.45*usbPerspective)*usbPlugScale,joinY=portY+3.45*usbPlugScale;
+    const approachX=joinX-usbInsertDistance*dx,approachY=joinY-usbInsertDistance*dy;
+    usbDock={x:approachX,y:approachY,dx,dy,angle:dockAngle};
+    const route=`M${sourceX.toFixed(4)} ${sourceY.toFixed(4)} C${(sourceX+170).toFixed(4)} ${sourceY.toFixed(4)} ${(approachX-180*dx).toFixed(4)} ${(approachY-180*dy).toFixed(4)} ${approachX.toFixed(4)} ${approachY.toFixed(4)} L${joinX.toFixed(4)} ${joinY.toFixed(4)}`;
+    if(usbTracks[0].getAttribute('d')!==route){
+      usbTracks.forEach(path=>path.setAttribute('d',route));
+      Object.assign(usbRoute,prepareRoute(usbTracks[0],usbTracks));
+    }
+    const stickyHeight=stickyHero.getBoundingClientRect().height;
+    // Finish the animation before sticky positioning releases the hero.
+    // Extra scroll distance holds the completed ticket without speeding up the scenes.
+    const ticketHold=Math.max(480,Math.round(stickyHeight));
+    hero.style.setProperty('--ticket-hold',`${ticketHold}px`);
+    // Extend the narrative for the two windows while retaining the original physical-scene speed.
+    const previousExtra=parseFloat(hero.style.getPropertyValue('--workflow-extra'))||0;
+    const originalRange=Math.max(1,hero.getBoundingClientRect().height-stickyHeight-ticketHold-previousExtra);
+    hero.style.setProperty('--workflow-extra',`${originalRange*(STORY_LENGTH-1)}px`);
+    const offset = document.querySelector('.site-header').getBoundingClientRect().height;
+    storyStart = hero.getBoundingClientRect().top+window.scrollY-offset;
+    storyRange = Math.max(1,hero.getBoundingClientRect().height-stickyHeight-ticketHold);
+    requestRender();
+  }
+  function animateStory(time) {
+    const dt=previousFrameTime?Math.max(0,time-previousFrameTime):16.67;
+    previousFrameTime=time;
+    if(renderedProgress===null) renderedProgress=targetProgress;
+    else renderedProgress+=(targetProgress-renderedProgress)*(1-Math.exp(-dt/95));
+    const settled=Math.abs(targetProgress-renderedProgress)<.000015;
+    if(settled)renderedProgress=targetProgress;
+    renderStory(renderedProgress);
+    if(!settled)requestAnimationFrame(animateStory);
+    else {renderPending=false;previousFrameTime=0;}
+  }
+  function requestRender() {
+    targetProgress=clamp((window.scrollY-storyStart)/storyRange);
+    if(renderPending)return;
+    renderPending=true;
+    requestAnimationFrame(animateStory);
+  }
+  function configureMotion() {
+    hero.classList.add('scroll-driven');
+    measureStory();
+  }
+  window.addEventListener('scroll',requestRender,{passive:true});
+  window.addEventListener('resize',measureStory,{passive:true});
+  window.addEventListener('pageshow',measureStory);
+  document.addEventListener('visibilitychange',() => {if(!document.hidden)measureStory();});
+  configureMotion();
+  if (document.fonts) document.fonts.ready.then(measureStory);
+  if ('ResizeObserver' in window) new ResizeObserver(measureStory).observe(stickyHero);
+
+  ticketExpand.addEventListener('click',()=>{
+    const preview=ticketDialog.querySelector('.ticket-dialog-page');
+    if(!preview.firstElementChild)preview.append(paper.querySelector('.ticket-document').cloneNode(true));
+    ticketDialog.showModal();
+    ticketDialog.querySelector('.ticket-dialog-scroll').scrollTo(0,0);
+  });
+  ticketDialog.querySelector('.ticket-dialog-close').addEventListener('click',()=>ticketDialog.close());
+
+  const mobileMenu = document.querySelector('.mobile-menu');
+  mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => { mobileMenu.open = false; }));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && mobileMenu.open) {
+      mobileMenu.open = false;
+      mobileMenu.querySelector('summary').focus();
+    }
+  });
+  document.addEventListener('click', event => { if (mobileMenu.open && !mobileMenu.contains(event.target)) mobileMenu.open = false; });
+
+  const form = document.querySelector('#lead-form');
+  const fields = {
+    name: form.elements.namedItem('name'), company: form.elements.namedItem('company'),
+    phone: form.elements.namedItem('phone'), email: form.elements.namedItem('email')
+  };
+  const messages = {
+    name: 'Informe seu nome, com pelo menos 2 caracteres.',
+    company: 'Informe o nome da sua empresa.',
+    phone: 'Informe um telefone com DDD: 10 ou 11 dígitos.',
+    email: 'Confira o endereço de e-mail informado.'
+  };
+  function isValid(name) {
+    const value = fields[name].value.trim();
+    if (name === 'name' || name === 'company') return value.length >= 2;
+    if (name === 'phone') {
+      const digits = value.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+      return /^([1-9]{2})\d{8,9}$/.test(digits);
+    }
+    return !value || fields[name].validity.valid;
+  }
+  function validateField(name) {
+    const valid = isValid(name);
+    fields[name].setAttribute('aria-invalid', String(!valid));
+    document.querySelector(`#${name}-error`).textContent = valid ? '' : messages[name];
+    return valid;
+  }
+  Object.entries(fields).forEach(([name, input]) => {
+    input.addEventListener('blur', () => { if (input.value || input.hasAttribute('aria-invalid')) validateField(name); });
+    input.addEventListener('input', () => {
+      if (input.getAttribute('aria-invalid') === 'true') validateField(name);
+      document.querySelector('#form-message').textContent = '';
+      document.querySelector('#whatsapp-fallback').hidden = true;
+    });
+  });
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const invalidNames = Object.keys(fields).filter(name => !validateField(name));
+    if (invalidNames.length) {
+      document.querySelector('#form-message').textContent = 'Confira os campos destacados para continuar.';
+      fields[invalidNames[0]].focus();
+      return;
+    }
+    const text = [
+      `Olá, equipe SIAMAC! Quero conhecer o ${CONTACT.product} e solicitar um teste para minha operação.`, '',
+      `Nome: ${fields.name.value.trim()}`,
+      `Empresa: ${fields.company.value.trim()}`,
+      `WhatsApp: ${fields.phone.value.trim()}`,
+      ...(fields.email.value.trim() ? [`E-mail: ${fields.email.value.trim()}`] : []), '',
+      'Podemos avaliar a compatibilidade da minha balança e as condições da demonstração?'
+    ].join('\n');
+    const url = new URL(`https://wa.me/${CONTACT.phone}`);
+    url.searchParams.set('text', text);
+    const fallback = document.querySelector('#whatsapp-fallback');
+    fallback.href = url.toString();
+    fallback.hidden = false;
+    document.querySelector('#form-message').textContent = 'Sua solicitação está preparada. No WhatsApp, revise e envie a mensagem. Se a nova aba não abriu, use o link abaixo.';
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
+    // Optional hook for an analytics integration chosen by the site owner.
+    // It contains no name, phone, company or email.
+    document.dispatchEvent(new CustomEvent('owl:lead-intent', { detail: { source: 'demo-form', channel: 'whatsapp' } }));
+  });
+
+})();
