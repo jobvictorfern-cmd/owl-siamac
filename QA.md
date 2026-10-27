@@ -1,5 +1,12 @@
 # Verificação da landing page OWL
 
+## Prioridade da primeira tela — 27/10/2026
+
+- PageSpeed oficial executado na URL publicada com os perfis celular e computador, antes e depois das alterações. Links e condições em `docs/performance.md`.
+- Revisão visual em computador e em 390 × 700 px: cenas físicas, conexão, confirmação e ticket completo; botão principal visível, sem transbordamento horizontal e sem erros de console.
+- Servidor temporário com atraso de 15 segundos por imagem pesada e resposta sem cache: rolagem rápida manteve o indicador completo enquanto as imagens carregavam. Depois, todos os quatro elementos adiados ficaram prontos e a sequência continuou. O servidor foi encerrado após a verificação.
+- Build, sintaxe do JavaScript fonte e minificado, referências de mídia (incluindo `data-story-src`) e âncoras locais conferidos. Arquivos de imagem preservados sem alterações.
+
 ## WhatsApp, mídia e responsividade — 27/10/2026
 
 - Verificação visual no navegador Chromium integrado em 1280 × 900, 768 × 1024, 390 × 844, 320 × 568 e 844 × 390. Sem rolagem horizontal; botão principal visível e separado do botão flutuante. Rotação entre retrato e paisagem recalculou a geometria.
