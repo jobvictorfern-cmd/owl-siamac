@@ -1,5 +1,11 @@
 # Verificação da landing page OWL
 
+## Saída mais curta do ticket — 27/10/2026
+
+- A pausa extra após a impressão passou de uma tela inteira (mínimo de 480 px) para 16% da área fixa, limitada a 96–144 px. O trecho das etapas anteriores permanece igual.
+- Em 1280 × 720, a pausa caiu de 634 para 101 px, mantendo a narrativa em 3344,625 px. Ticket inteiro no progresso 1; após mais 216 px de rolagem, a faixa de clientes já está visível e a área fixa foi liberada.
+- Em 390 × 700, pausa de 100 px, ticket inteiro ao concluir e clientes visíveis após mais 210 px. Console sem erros; build e sintaxe JavaScript conferidos.
+
 ## Prioridade da primeira tela — 27/10/2026
 
 - PageSpeed oficial executado na URL publicada com os perfis celular e computador, antes e depois das alterações. Links e condições em `docs/performance.md`.

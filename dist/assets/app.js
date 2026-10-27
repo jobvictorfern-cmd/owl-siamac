@@ -486,8 +486,8 @@
     }
     const stickyHeight=stickyHero.getBoundingClientRect().height;
     // Finish the animation before sticky positioning releases the hero.
-    // Extra scroll distance holds the completed ticket without speeding up the scenes.
-    const ticketHold=Math.max(480,Math.round(stickyHeight));
+    // Briefly show the completed ticket, then release the page without an extra screen of scrolling.
+    const ticketHold=Math.min(144,Math.max(96,Math.round(stickyHeight*.16)));
     hero.style.setProperty('--ticket-hold',`${ticketHold}px`);
     // Extend the narrative for the two windows while retaining the original physical-scene speed.
     const previousExtra=parseFloat(hero.style.getPropertyValue('--workflow-extra'))||0;

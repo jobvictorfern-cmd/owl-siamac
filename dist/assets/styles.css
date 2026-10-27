@@ -313,7 +313,7 @@
   .hero-scroll .hero-story .hero-actions>.button{min-height:46px}
 }
 
-/* Keep the completed ticket pinned for one additional screen of native scrolling. */
+/* Reserve a short native-scroll pause after the ticket is fully visible. */
 .hero-scroll.scroll-driven{height:calc(310svh + var(--ticket-hold,0px) + var(--workflow-extra,0px));min-height:calc(1850px + var(--ticket-hold,0px) + var(--workflow-extra,0px))}
 @media(min-width:1000px){
   .hero-scroll.scroll-driven{height:calc(330svh + var(--ticket-hold,0px) + var(--workflow-extra,0px));min-height:calc(2050px + var(--ticket-hold,0px) + var(--workflow-extra,0px))}
