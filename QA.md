@@ -1,5 +1,10 @@
 # Verificação da landing page OWL
 
+## Ajuste fino da rolagem — 27/10/2026
+
+- Distância aumentada em 10% sobre a versão compacta (escala de 0,70 para 0,77), preservando etapas, enquadramento e pausa final do ticket.
+- Em 390 × 700, percurso de 2288,547 px; ticket e botão inteiros no progresso final, pausa de 100 px e console sem erros. Build e sintaxe JavaScript validados.
+
 ## Sequência inteira com menos rolagem — 27/10/2026
 
 - Redução uniforme de 30% na distância da narrativa; os tempos relativos, as seis etapas e a pausa separada de 96–144 px do ticket foram preservados.
