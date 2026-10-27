@@ -6,6 +6,31 @@
   const STORY_LENGTH = 1.92;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hero = document.querySelector('.hero-scroll');
+  const deferredMedia = [...hero.querySelectorAll('[data-story-src]')];
+  let storyMediaReady = deferredMedia.length === 0, mediaRequest = null;
+  function loadStoryMedia() {
+    if(mediaRequest)return mediaRequest;
+    const urls=[...new Set(deferredMedia.map(element=>element.dataset.storySrc))];
+    hero.dataset.mediaState='loading';
+    mediaRequest=Promise.all(urls.map(url=>new Promise((resolve,reject)=>{
+      const image=new Image();
+      image.decoding='async';image.fetchPriority='low';
+      image.onload=()=>resolve(image.decode ? image.decode().catch(()=>{}) : undefined);
+      image.onerror=reject;
+      image.src=url;
+    }))).then(()=>{
+      deferredMedia.forEach(element=>element.setAttribute(element.tagName.toLowerCase()==='image'?'href':'src',element.dataset.storySrc));
+      storyMediaReady=true;
+      hero.dataset.mediaState='ready';
+      // Continue from the current scroll position once every full-quality image is decoded.
+      renderedProgress=Math.min(renderedProgress??0,.58/STORY_LENGTH);
+      requestRender();
+    }).catch(()=>{
+      mediaRequest=null;
+      hero.dataset.mediaState='retry';
+    });
+    return mediaRequest;
+  }
   const stickyHero = hero.querySelector('.hero-grid');
   const storyScenes = [...document.querySelectorAll('[data-scene]')];
   const truck = document.querySelector('.truck-layer');
@@ -117,7 +142,7 @@
   let renderedProgress = null, targetProgress = 0, previousFrameTime = 0, viewportRatio=1, arrivalUnit=1;
   let workflowScale=1, screenQuad=[], workflowCamera={x:3200,y:266.5,zoom:1.16}, demoAnchors={};
   let usbPlugScale=1,usbInsertDistance=32,usbDock={x:0,y:0,dx:1,dy:0,angle:0};
-  let workflowGeometry = {}, measurePending = false, animationFrame = 0;
+  let workflowGeometry = {}, measurePending = false, animationFrame = 0, measuredSize = '';
   let lastArrowProgress = null, lastArrowPoint, lastUsbProgress = null, lastUsbPoint;
   const ease = n => { const t=clamp(n); return t*t*t*(t*(t*6-15)+10); };
   const easeRange = (p, from, to) => ease(portion(p,from,to));
@@ -279,7 +304,8 @@
   }
   function renderStory(progress) {
     const overall = clamp(progress);
-    const timeline = overall*STORY_LENGTH;
+    // Keep the ready indicator visible on a slow connection; never expose empty images.
+    const timeline = Math.min(overall*STORY_LENGTH,storyMediaReady?STORY_LENGTH:.58);
     // Keep all six steps accessible when the device requests less motion.
     const p = motionPreference.matches ? (timeline<.435?.24:timeline<.755?.58:timeline<1.135?.89:timeline<1.43?1.39:timeline<1.79?1.74:1.92) : timeline;
     const firstTransfer=portion(p,.26,.45);
@@ -355,8 +381,8 @@
     ticketExpand.hidden=p<1.91;
     let value=p<.45?0:p<.58?WEIGHING.initial*portion(p,.45,.58):p<.77?WEIGHING.initial:WEIGHING.initial+WEIGHING.net*portion(p,.77,.89);
     value=Math.min(WEIGHING.final,Math.round(value/20)*20);drawWeight(value);
-    storyProgress.style.transform=`scaleX(${overall})`;
-    hero.dataset.storyStage=String(active);hero.dataset.storyProgress=overall.toFixed(3);
+    storyProgress.style.transform=`scaleX(${timeline/STORY_LENGTH})`;
+    hero.dataset.storyStage=String(active);hero.dataset.storyProgress=(timeline/STORY_LENGTH).toFixed(3);
     hero.dataset.storyPhase=p<.9?'physical':p<1.12?'screen':p<1.43?'vehicle':p<1.71?'final':p<1.79?'confirmed':'ticket';
     const transfer=p>.26&&p<.45?'indicator':p>.58&&p<.77?'computer':'';
     hero.dataset.storyTransition=transfer;
@@ -375,6 +401,9 @@
     }
   }
   function measureStory() {
+    const size=[storyViewport.clientWidth,storyViewport.clientHeight,workspace.offsetWidth,workspace.offsetHeight,stickyHero.offsetHeight,document.querySelector('.site-header').offsetHeight].join(',');
+    if(size===measuredSize){requestRender();return;}
+    measuredSize=size;
     workflowScale=Math.min(1,(storyViewport.clientWidth-12)/workspace.offsetWidth,(storyViewport.clientHeight-16)/workspace.offsetHeight);
     workflowGeometry={
       width:storyViewport.clientWidth,height:storyViewport.clientHeight,
@@ -477,6 +506,7 @@
   }
   function requestRender() {
     targetProgress=clamp((window.scrollY-storyStart)/storyRange);
+    if(targetProgress>0 && !storyMediaReady && hero.dataset.mediaState!=='retry')loadStoryMedia();
     if(renderPending || document.hidden || targetProgress===renderedProgress)return;
     renderPending=true;
     animationFrame=requestAnimationFrame(animateStory);
@@ -492,7 +522,7 @@
   }
   window.addEventListener('scroll',requestRender,{passive:true});
   window.addEventListener('resize',scheduleMeasure,{passive:true});
-  window.addEventListener('pageshow',scheduleMeasure);
+  window.addEventListener('pageshow',event=>{if(event.persisted)scheduleMeasure();});
   document.addEventListener('visibilitychange',() => {
     document.documentElement.classList.toggle('page-hidden',document.hidden);
     if(document.hidden){cancelAnimationFrame(animationFrame);renderPending=false;previousFrameTime=0;}
@@ -501,6 +531,14 @@
   if(motionPreference.addEventListener)motionPreference.addEventListener('change',scheduleMeasure);
   else motionPreference.addListener(scheduleMeasure);
   configureMotion();
+  // Let the opening image paint before transferring or decoding the later scenes.
+  Promise.all([...hero.querySelectorAll('.bridge-plate,.truck-base-image')].map(image=>image.decode?image.decode().catch(()=>{}):Promise.resolve())).then(()=>{
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if('requestIdleCallback' in window)requestIdleCallback(loadStoryMedia,{timeout:1500});
+      else setTimeout(loadStoryMedia,0);
+    }));
+  });
+  window.addEventListener('online',()=>{if(!storyMediaReady)loadStoryMedia();});
   if (document.fonts) document.fonts.ready.then(scheduleMeasure);
   if ('ResizeObserver' in window) new ResizeObserver(scheduleMeasure).observe(stickyHero);
   if ('IntersectionObserver' in window) {
