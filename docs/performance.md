@@ -1,5 +1,16 @@
 # Otimização de mídia e animação
 
+## Fluidez da sequência no mobile — 27/10/2026
+
+- Um único `requestAnimationFrame` controla a rolagem por clique e a cena. A navegação não passa mais por um segundo ciclo de interpolação com atraso; a duração 35% maior e a curva suave foram preservadas.
+- Atributos, textos e estilos só são escritos quando mudam. Janelas escondidas e o caminhão já parado não são recalculados; cenas completamente transparentes também ficam invisíveis. A área da animação usa contenção de layout e pintura.
+- A iluminação do visor e da tela é aplicada diretamente nesses elementos, evitando alterar propriedades herdadas por todo o hero a cada quadro. As máscaras das rodas abrangem somente os aros, preservando as mesmas fotos, perspectiva e suavização das bordas.
+- Eventos de `resize` sem mudança real na geometria do hero não cancelam o percurso. Mudanças de orientação ou tamanho efetivo continuam recalculando a cena; toque, rolagem e teclado ainda interrompem a navegação automática.
+- Comparação local de 481 posições idênticas, avançando e voltando: 12.253 mutações no DOM antes e 3.294 depois (73,1% menos). O tempo acumulado de JavaScript foi 60,2 ms e 45,9 ms nessa execução. Esse ensaio mede o trabalho de JavaScript e DOM, não FPS, pintura da GPU nem desempenho em um celular físico. A instrumentação fica fora da publicação.
+- Nenhum arquivo de imagem, resolução, foto do ticket ou conteúdo de vídeo foi alterado nesta otimização.
+
+## Mídia e carregamento
+
 - Os PNGs do conteúdo foram convertidos para WebP lossless, mantendo dimensões e transparência. A conversão foi verificada por igualdade dos pixels RGBA decodificados, incluindo pixels transparentes. O favicon permanece PNG.
 - A fonte variável Manrope foi convertida de TTF para WOFF2, preservando glifos e eixos.
 - As 24 imagens convertidas e a fonte passaram de 4.656.660 para 2.963.560 bytes: redução de 36,4%. Isso compara os arquivos, não o tempo de carregamento.

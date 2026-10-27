@@ -1,5 +1,13 @@
 # Verificação da landing page OWL
 
+## Fluidez no mobile — 27/10/2026
+
+- Seis destinos conferidos em 390 × 700, incluindo placa, reboque, confirmação e ticket. Em 320 × 568, a folha permanece dentro da área da animação e o CTA está inteiro, sem transbordamento horizontal.
+- Reproduzida a interrupção antiga com um `resize` durante o clique, sem alteração na geometria: percurso cancelado em 6,2%. Na versão corrigida, o mesmo evento ocorreu e a sequência chegou a 100%, com ticket completo.
+- Rolagem manual interrompe o movimento; uma nova escolha substitui o destino anterior. A duração mais lenta e a distância de rolagem foram preservadas. Conferido também o layout em 1280 × 900.
+- Ensaio local com 481 posições nos dois sentidos reduziu as mutações do DOM em aproximadamente 73%. É uma comparação controlada de JavaScript/DOM e viewport mobile, não uma medição de FPS em celular físico; detalhes em `docs/performance.md`.
+- Build, sintaxe, caminhos locais e ausência da instrumentação de teste no conteúdo publicado conferidos. Imagens e vídeo não foram alterados.
+
 ## Transições por clique mais lentas — 27/10/2026
 
 - Duração aumentada em 35% em todos os percursos, mantendo a curva suave de aceleração e desaceleração e a distância da rolagem manual.

@@ -6,6 +6,24 @@
   const STORY_LENGTH = 1.92;
   const STORY_SCROLL_SCALE = .8085;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Avoid invalidating styles and text when the rendered value is unchanged.
+  const frameStyles=new WeakMap();
+  function paintStyle(element,property,value){
+    let values=frameStyles.get(element);
+    if(!values){values={};frameStyles.set(element,values);}
+    if(values[property]===value)return;
+    values[property]=value;
+    element.style[property]=value;
+  }
+  function paintAttribute(element,name,value){
+    if(element.getAttribute(name)!==value)element.setAttribute(name,value);
+  }
+  function paintData(element,name,value){
+    if(element.dataset[name]!==value)element.dataset[name]=value;
+  }
+  function paintText(element,value){
+    if(element.textContent!==value)element.textContent=value;
+  }
   const hero = document.querySelector('.hero-scroll');
   const deferredMedia = [...hero.querySelectorAll('[data-story-src]')];
   let storyMediaReady = deferredMedia.length === 0, mediaRequest = null;
@@ -57,16 +75,19 @@
   wheelDefs.innerHTML='<radialGradient id="rim-feather"><stop offset="0" stop-color="black"/><stop offset=".22" stop-color="black"/><stop offset=".30" stop-color="white"/><stop offset=".88" stop-color="white"/><stop offset="1" stop-color="black"/></radialGradient><image id="rim-photo" href="assets/truck-layer.webp" width="1536" height="1024"/>';
   wheelSurface.append(wheelDefs);
   const wheelRotators=wheelSpecs.map(([x,y,rx,ry,tilt],i)=>{
+    const a=tilt*Math.PI/180,c=Math.cos(a),n=Math.sin(a);
+    const extentX=Math.hypot(rx*c,ry*n)+2,extentY=Math.hypot(rx*n,ry*c)+2;
     const mask=document.createElementNS(svgNS,'mask');
     mask.id=`rim-mask-${i}`;mask.setAttribute('maskUnits','userSpaceOnUse');
-    mask.setAttribute('x','0');mask.setAttribute('y','0');mask.setAttribute('width','1536');mask.setAttribute('height','1024');
+    // Rasterize only this photographed rim, not seven full-size truck masks.
+    mask.setAttribute('x',String(x-extentX));mask.setAttribute('y',String(y-extentY));
+    mask.setAttribute('width',String(extentX*2));mask.setAttribute('height',String(extentY*2));
     const ellipse=document.createElementNS(svgNS,'ellipse');
     Object.entries({cx:x,cy:y,rx,ry,transform:`rotate(${tilt} ${x} ${y})`,fill:'url(#rim-feather)'}).forEach(([k,v])=>ellipse.setAttribute(k,v));
     mask.append(ellipse);wheelDefs.append(mask);
     const group=document.createElementNS(svgNS,'g');group.setAttribute('mask',`url(#rim-mask-${i})`);
     const face=document.createElementNS(svgNS,'use');face.setAttribute('href','#rim-photo');
     group.append(face);wheelSurface.append(group);
-    const a=tilt*Math.PI/180,c=Math.cos(a),n=Math.sin(a);
     return {face,x,y,A:[rx*c,-ry*n,rx*n,ry*c],inv:[c/rx,n/rx,-n/ry,c/ry]};
   });
   document.querySelector('.truck-wheels').append(wheelSurface);
@@ -153,7 +174,7 @@
   let workflowScale=1, screenQuad=[], workflowCamera={x:3200,y:266.5,zoom:1.16}, demoAnchors={};
   let usbPlugScale=1,usbInsertDistance=32,usbDock={x:0,y:0,dx:1,dy:0,angle:0};
   let workflowGeometry = {}, measurePending = false, animationFrame = 0, measuredSize = '';
-  let stepScrollFrame = 0, stepRequest = 0;
+  let stepNavigation = null, stepRequest = 0;
   let lastArrowProgress = null, lastArrowPoint, lastUsbProgress = null, lastUsbPoint;
   const ease = n => { const t=clamp(n); return t*t*t*(t*(t*6-15)+10); };
   const easeRange = (p, from, to) => ease(portion(p,from,to));
@@ -195,12 +216,12 @@
     const characters = String(value).padStart(5,' ');
     digitGroups.forEach((group, index) => {
       const lit = digits[characters[index]] || '';
-      [...group.children].forEach(segment => segment.setAttribute('class',lit.includes(segment.dataset.segment)?'led-on':'led-off'));
+      [...group.children].forEach(segment => paintAttribute(segment,'class',lit.includes(segment.dataset.segment)?'led-on':'led-off'));
     });
-    decimal.setAttribute('class',value >= 1000 ? 'led-on' : 'led-off');
-    weightLabels[0].textContent = `${formatted} kg`;
-    weightLabels[1].textContent = formatted;
-    weightLabels[2].textContent = formatted;
+    paintAttribute(decimal,'class',value >= 1000 ? 'led-on' : 'led-off');
+    paintText(weightLabels[0],`${formatted} kg`);
+    paintText(weightLabels[1],formatted);
+    paintText(weightLabels[2],formatted);
   }
   function routePoint(route,progress){
     const sample=progress*120,i=Math.min(119,Math.floor(sample)),f=sample-i;
@@ -211,10 +232,10 @@
     if(t === lastArrowProgress)return lastArrowPoint;
     lastArrowProgress = t;
     const travel=easeRange(t,.10,.83),point=routePoint(arrowRoute,travel);
-    arrowTrack.setAttribute('stroke-dasharray',`${travel.toFixed(5)} 2`);
-    arrowTrack.style.opacity=t>0?'1':'0';
-    arrowTip.style.opacity=travel>.002?'1':'0';
-    arrowTip.setAttribute('transform',`translate(${point.x.toFixed(3)} ${point.y.toFixed(3)})`);
+    paintAttribute(arrowTrack,'stroke-dasharray',`${travel.toFixed(5)} 2`);
+    paintStyle(arrowTrack,'opacity',t>0?'1':'0');
+    paintStyle(arrowTip,'opacity',travel>.002?'1':'0');
+    paintAttribute(arrowTip,'transform',`translate(${point.x.toFixed(3)} ${point.y.toFixed(3)})`);
     return lastArrowPoint = point;
   }
   function drawUsb(t){
@@ -236,13 +257,13 @@
     const a=Math.cos(rotation)*usbPlugScale,b=Math.sin(rotation)*usbPlugScale;
     const c=(Math.cos(rotation)*usbPerspective-Math.sin(rotation))*usbPlugScale;
     const d=(Math.sin(rotation)*usbPerspective+Math.cos(rotation))*usbPlugScale;
-    usbCable.style.opacity=t>0?'1':'0';
-    usbPlugLayer.style.opacity=t>0?'1':'0';
+    paintStyle(usbCable,'opacity',t>0?'1':'0');
+    paintStyle(usbPlugLayer,'opacity',t>0?'1':'0');
     // The notebook's stationary socket mask occludes the entering metal.
-    usbRoute.tracks.forEach(line=>line.setAttribute('stroke-dasharray',`${travel.toFixed(6)} 2`));
-    usbPlug.setAttribute('transform',`matrix(${a.toFixed(6)} ${b.toFixed(6)} ${c.toFixed(6)} ${d.toFixed(6)} ${point.x.toFixed(4)} ${point.y.toFixed(4)})`);
-    hero.dataset.usbConnected=String(t>=.86);
-    hero.dataset.usbInsertion=insertion.toFixed(3);
+    usbRoute.tracks.forEach(line=>paintAttribute(line,'stroke-dasharray',`${travel.toFixed(6)} 2`));
+    paintAttribute(usbPlug,'transform',`matrix(${a.toFixed(6)} ${b.toFixed(6)} ${c.toFixed(6)} ${d.toFixed(6)} ${point.x.toFixed(4)} ${point.y.toFixed(4)})`);
+    paintData(hero,'usbConnected',String(t>=.86));
+    paintData(hero,'usbInsertion',insertion.toFixed(3));
     return lastUsbPoint = {x:point.x+61.85*a-6*c,y:point.y+61.85*b-6*d};
   }
   function followCable(signal,t,source,destination,arrivalStart=.78) {
@@ -254,12 +275,17 @@
       zoom:mix(mix(source.zoom??1.16,1.8,leave),destination.zoom??1.16,arrive)
     };
   }
+  let lastWorkflowProgress=null;
   function renderWorkflow(p,screenZoom,ticketOpacity,camera,zoom){
-    workflow.style.opacity=String(p<.9?0:1-ticketOpacity);
-    workflow.style.visibility=p<.9||ticketOpacity===1?'hidden':'visible';
-    heroLaptopScreen.style.opacity=p<.9?'1':'0';
-    workflow.setAttribute('aria-hidden',String(p<1.08||p>=1.82));
-    workspace.style.transform=`translate(-50%,-50%) scale(${workflowScale.toFixed(5)})`;
+    // Leave hidden windows untouched until they enter the scene (or the layout changes).
+    const frame=Math.max(.89,Math.min(1.83,p));
+    if(frame===lastWorkflowProgress)return;
+    lastWorkflowProgress=frame;
+    p=frame;
+    paintStyle(workflow,'opacity',String(p<.9?0:1-ticketOpacity));
+    paintStyle(workflow,'visibility',p<.9||ticketOpacity===1?'hidden':'visible');
+    paintStyle(heroLaptopScreen,'opacity',p<.9?'1':'0');
+    paintAttribute(workflow,'aria-hidden',String(p<1.08||p>=1.82));
     if(p>=.9&&p<1.08){
       const {w,h,left,top,width,height,offsetLeft,offsetTop}=workflowGeometry;
       const destination=[[0,0],[w,0],[w,h],[0,h]];
@@ -277,21 +303,21 @@
       const determinant=dx1*dy2-dx2*dy1;
       const g=(dx3*dy2-dx2*dy3)/determinant,k=(dx1*dy3-dx3*dy1)/determinant;
       const matrix=[(x1-x0+g*x1)/w,(y1-y0+g*y1)/w,0,g/w,(x3-x0+k*x3)/h,(y3-y0+k*y3)/h,0,k/h,0,0,1,0,x0,y0,0,1];
-      appSurface.style.transform=`matrix3d(${matrix.join(',')})`;
-    }else appSurface.style.transform='none';
+      paintStyle(appSurface,'transform',`matrix3d(${matrix.join(',')})`);
+    }else paintStyle(appSurface,'transform','none');
     const vehicleIn=easeRange(p,1.12,1.16);
-    vehicleWindow.style.opacity=String(vehicleIn*(1-easeRange(p,1.405,1.45)));
-    vehicleWindow.style.transform=`translateY(${10*(1-vehicleIn)}px) scale(${.98+.02*vehicleIn})`;
+    paintStyle(vehicleWindow,'opacity',String(vehicleIn*(1-easeRange(p,1.405,1.45))));
+    paintStyle(vehicleWindow,'transform',`translateY(${10*(1-vehicleIn)}px) scale(${.98+.02*vehicleIn})`);
     const finalIn=easeRange(p,1.42,1.46);
-    finalWindow.style.opacity=String(finalIn);
-    finalWindow.style.transform=`translateY(${10*(1-finalIn)}px) scale(${.98+.02*finalIn})`;
-    workspaceShade.style.opacity=String(vehicleIn);
-    rowHighlight.style.opacity=String(easeRange(p,1.105,1.12));
-    typedPlate.textContent='ABC1D23'.slice(0,Math.floor(portion(p,1.18,1.29)*7));
-    typedTrailer.textContent='DEF4G56'.slice(0,Math.floor(portion(p,1.29,1.37)*7));
+    paintStyle(finalWindow,'opacity',String(finalIn));
+    paintStyle(finalWindow,'transform',`translateY(${10*(1-finalIn)}px) scale(${.98+.02*finalIn})`);
+    paintStyle(workspaceShade,'opacity',String(vehicleIn));
+    paintStyle(rowHighlight,'opacity',String(easeRange(p,1.105,1.12)));
+    paintText(typedPlate,'ABC1D23'.slice(0,Math.floor(portion(p,1.18,1.29)*7)));
+    paintText(typedTrailer,'DEF4G56'.slice(0,Math.floor(portion(p,1.29,1.37)*7)));
     plateInput.classList.toggle('is-typing',p>=1.175&&p<1.29);
     trailerInput.classList.toggle('is-typing',p>=1.29&&p<1.39);
-    foundVehicle.style.opacity=String(easeRange(p,1.29,1.38));
+    paintStyle(foundVehicle,'opacity',String(easeRange(p,1.29,1.38)));
     confirmWeighing.classList.toggle('is-pressed',p>=1.665&&p<1.705);
     confirmWeighing.classList.toggle('is-confirmed',p>=1.71);
     const route=[
@@ -307,11 +333,40 @@
     const t=easeRange(p,from[0],to[0]);
     const x=from[1].x+(to[1].x-from[1].x)*t;
     const y=from[1].y+(to[1].y-from[1].y)*t;
-    demoPointer.style.transform=`translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`;
-    demoPointer.style.opacity=String(easeRange(p,1.08,1.10)*(1-easeRange(p,1.72,1.77)));
+    paintStyle(demoPointer,'transform',`translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`);
+    paintStyle(demoPointer,'opacity',String(easeRange(p,1.08,1.10)*(1-easeRange(p,1.72,1.77))));
     const click=p<1.4?portion(p,1.11,1.14):portion(p,1.665,1.715);
-    clickRing.style.opacity=String(Math.sin(click*Math.PI)*.8);
-    clickRing.style.transform=`scale(${.5+click*1.5})`;
+    paintStyle(clickRing,'opacity',String(Math.sin(click*Math.PI)*.8));
+    paintStyle(clickRing,'transform',`scale(${.5+click*1.5})`);
+  }
+  let lastTruckProgress=null;
+  function renderTruck(progress){
+    const p=Math.min(progress,.27);
+    if(p===lastTruckProgress)return;
+    lastTruckProgress=p;
+    // A cosine velocity ramp brakes to zero before the data transfer begins.
+    const travelTime = portion(p+.015,0,.215);
+    const brake = portion(travelTime,.65,1);
+    const arrival = travelTime <= .65 ? travelTime/.825 : (.65+.35*(brake/2+Math.sin(Math.PI*brake)/(2*Math.PI)))/.825;
+    const remaining=1000*(1-arrival);
+    const vehicleScale=.83/(1+.00023*remaining);
+    const frontX=631.12+remaining;
+    const a=vehicleScale,b=vehicleScale*(-.018),k=0,d=vehicleScale;
+    const frontY=668.2-.079*remaining;
+    const tx=frontX-a*664-k*804,ty=frontY-b*664-d*804;
+    paintStyle(truck,'transform',`matrix(${a.toFixed(7)},${b.toFixed(7)},${k.toFixed(7)},${d.toFixed(7)},${(tx*arrivalUnit).toFixed(3)},${(ty*arrivalUnit).toFixed(3)})`);
+    let cabPitch=-.8*Math.sin(Math.PI*brake/2);
+    if(p>=.2){const settle=portion(p,.2,.27);cabPitch=settle>=1?0:-.8*Math.exp(-5*settle)*Math.cos(2*Math.PI*1.35*settle);}
+    paintStyle(cab,'transform',`rotate(${cabPitch.toFixed(4)}deg) translateY(${Math.max(0,-cabPitch)*.7}px)`);
+    // Perspective-correct photo rotation on each rim. The final phase is the
+    // original photograph, and angular motion decreases with the actual travel.
+    const wheelAngle=(remaining+.000115*remaining*remaining)/(.83*75*.62);
+    rotateRims(wheelAngle);
+    paintData(hero,'rampPitch','0.000');
+    paintData(hero,'wheelAngle',(wheelAngle*180/Math.PI).toFixed(2));
+    paintData(hero,'frontContact',`${frontX.toFixed(2)},${frontY.toFixed(2)}`);
+    paintData(hero,'cabPitch',cabPitch.toFixed(4));
+    paintData(hero,'vehicleStopped',String(p>=.2));
   }
   function renderStory(progress) {
     const overall = clamp(progress);
@@ -344,33 +399,11 @@
     const zoom=camera.zoom*Math.min(1,viewportRatio/.76);
     const focusX=camera.x;
     const panY=viewportRatio*.5-camera.y/533*zoom;
-    storyWorld.style.transform = `translate3d(${(400-focusX*zoom)/4000*100}%,${panY*100}%,0) scale(${zoom})`;
-    storyWorld.style.opacity = String(1-easeRange(p,.90,1.08));
-    storyWorld.style.visibility=p>=1.08?'hidden':'visible';
+    paintStyle(storyWorld,'transform',`translate3d(${(400-focusX*zoom)/4000*100}%,${panY*100}%,0) scale(${zoom})`);
+    paintStyle(storyWorld,'opacity',String(1-easeRange(p,.90,1.08)));
+    paintStyle(storyWorld,'visibility',p>=1.08?'hidden':'visible');
     renderWorkflow(p,screenZoom,ticketOpacity,camera,zoom);
-    // A cosine velocity ramp brakes to zero before the data transfer begins.
-    const travelTime = portion(p+.015,0,.215);
-    const brake = portion(travelTime,.65,1);
-    const arrival = travelTime <= .65 ? travelTime/.825 : (.65+.35*(brake/2+Math.sin(Math.PI*brake)/(2*Math.PI)))/.825;
-    const remaining=1000*(1-arrival);
-    const vehicleScale=.83/(1+.00023*remaining);
-    const frontX=631.12+remaining;
-    const a=vehicleScale,b=vehicleScale*(-.018),k=0,d=vehicleScale;
-    const frontY=668.2-.079*remaining;
-    const tx=frontX-a*664-k*804,ty=frontY-b*664-d*804;
-    truck.style.transform=`matrix(${a.toFixed(7)},${b.toFixed(7)},${k.toFixed(7)},${d.toFixed(7)},${(tx*arrivalUnit).toFixed(3)},${(ty*arrivalUnit).toFixed(3)})`;
-    let cabPitch=-.8*Math.sin(Math.PI*brake/2);
-    if(p>=.2){const settle=portion(p,.2,.27);cabPitch=settle>=1?0:-.8*Math.exp(-5*settle)*Math.cos(2*Math.PI*1.35*settle);}
-    cab.style.transform=`rotate(${cabPitch.toFixed(4)}deg) translateY(${Math.max(0,-cabPitch)*.7}px)`;
-    // Perspective-correct photo rotation on each rim. The final phase is the
-    // original photograph, and angular motion decreases with the actual travel.
-    const wheelAngle=(remaining+.000115*remaining*remaining)/(.83*75*.62);
-    rotateRims(wheelAngle);
-    hero.dataset.rampPitch='0.000';
-    hero.dataset.wheelAngle=(wheelAngle*180/Math.PI).toFixed(2);
-    hero.dataset.frontContact=`${frontX.toFixed(2)},${frontY.toFixed(2)}`;
-    hero.dataset.cabPitch=cabPitch.toFixed(4);
-    hero.dataset.vehicleStopped=String(p>=.2);
+    renderTruck(p);
     // Only the connection occupies the middle of a journey. Reveal its destination
     // after reaching the end, as the camera opens back onto the equipment.
     const stationOpacity=[
@@ -380,35 +413,36 @@
     ];
     storyScenes.forEach(scene => {
       const index=Number(scene.dataset.scene);
-      if(index===5){scene.style.opacity=String(ticketOpacity);scene.style.transform='none';}
-      else scene.style.opacity=String(stationOpacity[index]);
-      scene.setAttribute('aria-hidden',String(index!==active||(index===2&&p>=1.08)||(index===5&&p<1.79)));
+      if(index===5){paintStyle(scene,'opacity',String(ticketOpacity));paintStyle(scene,'transform','none');}
+      else paintStyle(scene,'opacity',String(stationOpacity[index]));
+      paintStyle(scene,'visibility',(index===5?ticketOpacity>0:p<1.08&&stationOpacity[index]>0)?'visible':'hidden');
+      paintAttribute(scene,'aria-hidden',String(index!==active||(index===2&&p>=1.08)||(index===5&&p<1.79)));
     });
-    computerCaption.style.opacity=String(p>=.77?1-screenZoom:0);
-    hero.style.setProperty('--indicator-power',String(.20+.80*easeRange(p,.425,.45)));
-    hero.style.setProperty('--computer-power',String(.70+.30*easeRange(p,.745,.77)));
+    paintStyle(computerCaption,'opacity',String(p>=.77?1-screenZoom:0));
+    paintStyle(ledDisplay,'opacity',String(.20+.80*easeRange(p,.425,.45)));
+    paintStyle(heroLaptopScreen,'filter',`brightness(${.70+.30*easeRange(p,.745,.77)})`);
     const ticketReveal = smooth(p,1.82,1.91);
-    paper.style.transform = `translateY(${-(1-ticketReveal)*103}%)`;
-    ticketExpand.hidden=p<1.91;
+    paintStyle(paper,'transform',`translateY(${-(1-ticketReveal)*103}%)`);
+    if(ticketExpand.hidden!==(p<1.91))ticketExpand.hidden=p<1.91;
     let value=p<.45?0:p<.58?WEIGHING.initial*portion(p,.45,.58):p<.77?WEIGHING.initial:WEIGHING.initial+WEIGHING.net*portion(p,.77,.89);
     value=Math.min(WEIGHING.final,Math.round(value/20)*20);drawWeight(value);
-    storyProgress.style.transform=`scaleX(${timeline/STORY_LENGTH})`;
-    hero.dataset.storyStage=String(active);hero.dataset.storyProgress=(timeline/STORY_LENGTH).toFixed(3);
-    hero.dataset.storyPhase=p<.9?'physical':p<1.12?'screen':p<1.43?'vehicle':p<1.71?'final':p<1.79?'confirmed':'ticket';
+    paintStyle(storyProgress,'transform',`scaleX(${timeline/STORY_LENGTH})`);
+    paintData(hero,'storyStage',String(active));paintData(hero,'storyProgress',(timeline/STORY_LENGTH).toFixed(3));
+    paintData(hero,'storyPhase',p<.9?'physical':p<1.12?'screen':p<1.43?'vehicle':p<1.71?'final':p<1.79?'confirmed':'ticket');
     const transfer=p>.26&&p<.45?'indicator':p>.58&&p<.77?'computer':'';
-    hero.dataset.storyTransition=transfer;
+    paintData(hero,'storyTransition',transfer);
     if(active!==previousScene){
       const wasInitialized=previousScene!==-1;
       previousScene=active;
       stepButtons.forEach((button,index)=>{
-        if(index===active)button.setAttribute('aria-current','step');
+        if(index===active)paintAttribute(button,'aria-current','step');
         else button.removeAttribute('aria-current');
       });
       const copy=sceneCopy[active];
-      heroTitleLead.textContent=copy.lead;
-      heroTitleAccent.textContent=copy.accent;
-      heroDescription.textContent=copy.description;
-      storyAnnouncement.textContent=`Etapa ${active+1} de ${sceneCopy.length}. ${copy.lead}${copy.accent} ${copy.description}`;
+      paintText(heroTitleLead,copy.lead);
+      paintText(heroTitleAccent,copy.accent);
+      paintText(heroDescription,copy.description);
+      paintText(storyAnnouncement,`Etapa ${active+1} de ${sceneCopy.length}. ${copy.lead}${copy.accent} ${copy.description}`);
       if(wasInitialized && !motionPreference.matches && heroCopy.animate){
         if(heroCopy.getAnimations)heroCopy.getAnimations().forEach(animation=>animation.cancel());
         heroCopy.animate([{opacity:.35,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,easing:'ease-out'});
@@ -418,8 +452,12 @@
   function measureStory() {
     const size=[storyViewport.clientWidth,storyViewport.clientHeight,workspace.offsetWidth,workspace.offsetHeight,stickyHero.offsetHeight,document.querySelector('.site-header').offsetHeight].join(',');
     if(size===measuredSize){requestRender();return;}
+    // Mobile address-bar resizes do not interrupt a journey unless the hero actually changes size.
+    cancelStepNavigation();
     measuredSize=size;
+    lastWorkflowProgress=lastTruckProgress=null;
     workflowScale=Math.min(1,(storyViewport.clientWidth-12)/workspace.offsetWidth,(storyViewport.clientHeight-16)/workspace.offsetHeight);
+    paintStyle(workspace,'transform',`translate(-50%,-50%) scale(${workflowScale.toFixed(5)})`);
     workflowGeometry={
       width:storyViewport.clientWidth,height:storyViewport.clientHeight,
       w:appSurface.offsetWidth,h:appSurface.offsetHeight,
@@ -511,18 +549,28 @@
   function animateStory(time) {
     const dt=previousFrameTime?Math.max(0,time-previousFrameTime):16.67;
     previousFrameTime=time;
-    if(renderedProgress===null || motionPreference.matches) renderedProgress=targetProgress;
+    const journey=stepNavigation;
+    if(journey){
+      if(journey.started===null)journey.started=time;
+      const progress=clamp((time-journey.started)/journey.duration);
+      const top=journey.from+(journey.to-journey.from)*ease(progress);
+      window.scrollTo({top,behavior:'instant'});
+      targetProgress=clamp((top-storyStart)/storyRange);
+      // One frame drives both scrolling and the scene, without a second delayed loop.
+      renderedProgress=targetProgress;
+      if(progress===1){stepNavigation=null;journey.button.removeAttribute('data-destination');}
+    }else if(renderedProgress===null || motionPreference.matches) renderedProgress=targetProgress;
     else renderedProgress+=(targetProgress-renderedProgress)*(1-Math.exp(-dt/95));
     const settled=Math.abs(targetProgress-renderedProgress)<.000015;
     if(settled)renderedProgress=targetProgress;
     renderStory(renderedProgress);
-    if(!settled)animationFrame=requestAnimationFrame(animateStory);
+    if(stepNavigation || !settled)animationFrame=requestAnimationFrame(animateStory);
     else {renderPending=false;previousFrameTime=0;}
   }
   function requestRender() {
-    targetProgress=clamp((window.scrollY-storyStart)/storyRange);
+    if(!stepNavigation)targetProgress=clamp((window.scrollY-storyStart)/storyRange);
     if(targetProgress>0 && !storyMediaReady && hero.dataset.mediaState!=='retry')loadStoryMedia();
-    if(renderPending || document.hidden || targetProgress===renderedProgress)return;
+    if(renderPending || document.hidden || (!stepNavigation && targetProgress===renderedProgress))return;
     renderPending=true;
     animationFrame=requestAnimationFrame(animateStory);
   }
@@ -537,8 +585,7 @@
   }
   function cancelStepNavigation(){
     stepRequest++;
-    cancelAnimationFrame(stepScrollFrame);
-    stepScrollFrame=0;
+    stepNavigation=null;
     storySteps.removeAttribute('aria-busy');
     stepButtons.forEach(button=>button.removeAttribute('data-destination'));
   }
@@ -569,17 +616,8 @@
     }
     // Give each journey 35% more time while keeping the same smooth easing.
     const duration=1.35*Math.min(3600,Math.max(650,Math.abs(to-from)*1.15));
-    let started=null;
-    const advance=time=>{
-      if(request!==stepRequest)return;
-      if(started===null)started=time;
-      const progress=clamp((time-started)/duration);
-      window.scrollTo({top:from+(to-from)*ease(progress),behavior:'instant'});
-      requestRender();
-      if(progress<1)stepScrollFrame=requestAnimationFrame(advance);
-      else {stepScrollFrame=0;button.removeAttribute('data-destination');}
-    };
-    stepScrollFrame=requestAnimationFrame(advance);
+    stepNavigation={from,to,duration,started:null,button};
+    requestRender();
   }
   stepButtons.forEach((button,index)=>button.addEventListener('click',()=>navigateToStep(index)));
   // Manual input always takes over; no scroll lock and no queued destinations.
@@ -587,7 +625,6 @@
   window.addEventListener('keydown',event=>{
     if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' ','Escape','Tab'].includes(event.key))cancelStepNavigation();
   });
-  window.addEventListener('resize',cancelStepNavigation,{passive:true});
   window.addEventListener('scroll',requestRender,{passive:true});
   window.addEventListener('resize',scheduleMeasure,{passive:true});
   window.addEventListener('pageshow',event=>{if(event.persisted)scheduleMeasure();});
