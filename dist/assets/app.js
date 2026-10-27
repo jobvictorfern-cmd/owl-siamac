@@ -10,16 +10,22 @@
   let storyMediaReady = deferredMedia.length === 0, mediaRequest = null;
   function loadStoryMedia() {
     if(mediaRequest)return mediaRequest;
-    const urls=[...new Set(deferredMedia.map(element=>element.dataset.storySrc))];
     hero.dataset.mediaState='loading';
-    mediaRequest=Promise.all(urls.map(url=>new Promise((resolve,reject)=>{
-      const image=new Image();
-      image.decoding='async';image.fetchPriority='low';
-      image.onload=()=>resolve(image.decode ? image.decode().catch(()=>{}) : undefined);
-      image.onerror=reject;
-      image.src=url;
+    mediaRequest=Promise.all(deferredMedia.map(element=>new Promise((resolve,reject)=>{
+      if(element.dataset.mediaLoaded==='true'){resolve();return;}
+      const clear=()=>{element.removeEventListener('load',loaded);element.removeEventListener('error',failed);};
+      const loaded=()=>{
+        clear();
+        Promise.resolve(element.decode ? element.decode() : undefined).then(()=>{
+          element.dataset.mediaLoaded='true';resolve();
+        },reject);
+      };
+      const failed=()=>{clear();reject(new Error('Image unavailable'));};
+      element.addEventListener('load',loaded,{once:true});
+      element.addEventListener('error',failed,{once:true});
+      element.setAttribute('fetchpriority','low');
+      element.setAttribute(element.tagName.toLowerCase()==='image'?'href':'src',element.dataset.storySrc);
     }))).then(()=>{
-      deferredMedia.forEach(element=>element.setAttribute(element.tagName.toLowerCase()==='image'?'href':'src',element.dataset.storySrc));
       storyMediaReady=true;
       hero.dataset.mediaState='ready';
       // Continue from the current scroll position once every full-quality image is decoded.

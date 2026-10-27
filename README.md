@@ -1,6 +1,6 @@
 # OWL — Landing page SIAMAC
 
-Página mobile first em HTML, CSS e JavaScript puro. O conteúdo publicável está em `dist/`, sem framework ou build obrigatório.
+Página mobile first em HTML, CSS e JavaScript puro. O conteúdo publicável está em `dist/`, sem framework. O build gera as versões minificadas de CSS e JavaScript.
 
 ## Sequência visual
 
@@ -35,6 +35,13 @@ Fontes do conteúdo original:
 Ativos atuais da sequência: `weighbridge-flatend.webp`, `truck-layer.webp`, `indicator.webp`, `owl-laptop-unplugged.webp`, `usb-connector-perspective.webp` e `owl-interface-hd.webp`. A apresentação do produto também usa o notebook sem cabo. A versão da interface foi reconstruída com IA para apresentação. Originais e versões antigas ficam em `source-assets/`, fora da publicação. Os prompts e a origem dos ativos estão em `ASSETS.md`; as otimizações sem perda de pixels e o carregamento do vídeo estão em `docs/performance.md`. A verificação e seus limites estão em `QA.md`.
 
 ## Executar localmente
+
+Após editar `dist/assets/app.js` ou `dist/assets/styles.css`, gere novamente os arquivos `.min` usados pela página. O GitHub Actions executa esse mesmo build antes de publicar. Não edite os arquivos minificados diretamente.
+
+```sh
+npm ci --ignore-scripts --no-audit --no-fund
+npm run build
+```
 
 ```sh
 python -m http.server 8000 --directory dist
