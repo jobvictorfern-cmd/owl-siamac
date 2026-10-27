@@ -364,8 +364,37 @@
 .ticket-dialog-close:hover{background:var(--pale)}
 .ticket-dialog-close>span{font-size:24px;line-height:1}
 .ticket-dialog-scroll{min-height:0;overflow:auto;overscroll-behavior:contain;padding:16px}
-.ticket-dialog-page{width:594px;height:833px;margin:0 auto;box-shadow:0 2px 14px #102b3c20}
+.ticket-dialog-page{width:594px;margin:0 auto;display:grid;gap:20px}
 .ticket-dialog-page .ticket-document{transform:none}
+.ticket-dialog-page>.ticket-document{box-shadow:0 2px 14px #102b3c20}
+
+/* Photo ticket: one complete summary sheet in the hero, full photo annexes in the dialog. */
+.ticket-document--photos{display:grid;grid-template-rows:72px 174px 76px minmax(0,1fr) 16px;gap:12px}
+.ticket-document--photos .ticket-doc-header,.ticket-photo-page .ticket-doc-header{height:72px}
+.ticket-document--photos .ticket-doc-company>strong,.ticket-photo-page .ticket-doc-company>strong{font-size:17px;margin:0 0 4px}
+.ticket-document--photos .ticket-doc-company>p,.ticket-photo-page .ticket-doc-company>p{font-size:9px}
+.ticket-document--photos .ticket-doc-grid{grid-template-rows:88px 74px;gap:12px 14px;margin:0}
+.ticket-document--photos .ticket-doc-fields{font-size:8.5px;line-height:14px}
+.ticket-document--photos .ticket-doc-fields>div{grid-template-columns:112px minmax(0,1fr)}
+.ticket-document--photos .ticket-doc-fields dd{font-size:8.5px}
+.ticket-document--photos .ticket-doc-number{font-size:32px;line-height:1.1;margin:2px 0 3px}
+.ticket-doc-reference{font-size:8px;line-height:1.5;text-align:center}
+.ticket-document--photos .ticket-doc-notes{font-size:8.5px;line-height:1.6;padding:0}
+.ticket-photo-records{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ticket-photo-records>div{border:1px solid #777;padding:7px 8px}
+.ticket-photo-records h4{font:700 9px/1.2 Arial,sans-serif;color:#666;margin:0 0 5px}
+.ticket-photo-records strong{display:block;font:400 23px/1 Arial,sans-serif;white-space:nowrap;margin-bottom:5px}
+.ticket-photo-records p{font-size:7px;line-height:1.4}
+.ticket-photo-summary{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px}
+.ticket-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-content:start}
+.ticket-photo-grid figure{margin:0;min-width:0}
+.ticket-photo-grid img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:#eee;border:1px solid #c5c5c5}
+.ticket-photo-grid figcaption{padding:4px 0;font:700 8px/1.2 Arial,sans-serif;color:#444}
+.ticket-document--photos .ticket-doc-example{position:static;align-self:end;font-size:7px}
+.ticket-photo-page{display:grid;grid-template-rows:72px auto auto 1fr 16px;gap:20px}
+.ticket-photo-meta{font-size:9px;line-height:1.7}
+.ticket-photo-page .ticket-photo-grid{gap:28px 16px}
+.ticket-photo-page .ticket-doc-example{position:static;align-self:end;font-size:7px}
 
 /* Scroll-driven demonstration of the OWL windows; these are not live form controls. */
 .owl-workflow{position:absolute;inset:0;z-index:3;opacity:0;pointer-events:none;overflow:hidden}

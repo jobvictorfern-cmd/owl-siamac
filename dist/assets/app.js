@@ -131,7 +131,7 @@
     {lead:'Informação no ',accent:'OWL.',description:'O peso da balança, na tela do seu sistema.'},
     {lead:'Identifique o ',accent:'veículo.',description:'Placa e reboque vinculados à operação.'},
     {lead:'Confirme a ',accent:'pesagem.',description:'Confira os pesos e finalize o registro.'},
-    {lead:'Pesagem ',accent:'registrada.',description:'O registro da operação, pronto para consulta.'}
+    {lead:'Pesagem ',accent:'registrada.',description:'Pesos e fotos da operação, prontos para consulta.'}
   ];
   const clamp = n => Math.max(0, Math.min(1, n));
   const portion = (p, from, to) => clamp((p - from) / (to - from));
@@ -141,7 +141,7 @@
   paper.querySelectorAll('[data-ticket-weight]').forEach(field=>{
     field.textContent=`${numberFormat.format(WEIGHING[field.dataset.ticketWeight])} kg`;
   });
-  paper.setAttribute('aria-label',`Exemplo de ticket SIAMAC: peso inicial de ${numberFormat.format(WEIGHING.initial)} quilos, peso final de ${numberFormat.format(WEIGHING.final)} quilos e peso líquido de ${numberFormat.format(WEIGHING.net)} quilos`);
+  paper.setAttribute('aria-label',`Exemplo de ticket SIAMAC com fotos de entrada e saída: peso inicial de ${numberFormat.format(WEIGHING.initial)} quilos, peso final de ${numberFormat.format(WEIGHING.final)} quilos e peso líquido de ${numberFormat.format(WEIGHING.net)} quilos`);
   workflow.querySelectorAll('[data-demo-weight]').forEach(field=>{
     field.textContent=`${numberFormat.format(WEIGHING[field.dataset.demoWeight])} kg`;
   });
@@ -575,7 +575,12 @@
 
   ticketExpand.addEventListener('click',()=>{
     const preview=ticketDialog.querySelector('.ticket-dialog-page');
-    if(!preview.firstElementChild)preview.append(paper.querySelector('.ticket-document').cloneNode(true));
+    if(!preview.firstElementChild){
+      preview.append(paper.querySelector('.ticket-document').cloneNode(true));
+      preview.append(document.querySelector('#ticket-photo-pages').content.cloneNode(true));
+      // Full-resolution photos are only requested when the visitor opens the ticket.
+      preview.querySelectorAll('[data-ticket-photo]').forEach(image=>{image.src=image.dataset.ticketPhoto;});
+    }
     ticketDialog.showModal();
     ticketDialog.querySelector('.ticket-dialog-scroll').scrollTo(0,0);
   });

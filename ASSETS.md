@@ -1,5 +1,11 @@
 # Ativos visuais do OWL
 
+## Ticket com fotos — 27/10/2026
+
+Referência fornecida pelo usuário: `siamacret145653030720246383.pdf`, três páginas. O HTML adapta o modelo para uma folha de resumo com quatro fotos no hero e dois anexos com todas as oito fotos em “Ampliar ticket”. Cabeçalhos usam exclusivamente `siamac-logo.webp`; os dados textuais foram substituídos por exemplos, com os mesmos pesos e veículo da animação. Fotos e datas impressas nas imagens são ilustrativas, conforme aviso nas páginas.
+
+As imagens JPEG G3–G6 e G8–G11 do PDF foram extraídas sem recodificação, preservadas byte a byte em `dist/assets/ticket-entrada-1.jpg` a `ticket-entrada-4.jpg` e `ticket-saida-1.jpg` a `ticket-saida-4.jpg`. Dimensões: 1280 × 720. As versões `*-preview.webp` das câmeras 1 e 2 foram redimensionadas para 640 × 360 e codificadas em WebP sem perdas adicionais, mantendo a proporção; as quatro prévias totalizam 1.078.182 bytes. Os originais só são inseridos no diálogo ao abrir a ampliação, com carregamento preguiçoso.
+
 ## Lactalis Brasil — 27/10/2026
 
 Logo adicionado à faixa de clientes a pedido do usuário. Origem oficial: https://www.lactalis.com.br/wp-content/themes/lactalis/assets/images/logo.svg (site https://www.lactalis.com.br/). Arquivo publicado: `dist/assets/client-lactalis.svg`, com as proporções e o enquadramento do SVG oficial preservados. A imagem PNG embutida foi recodificada em WebP sem perdas, com igualdade exata dos pixels RGBA verificada: o SVG passou de 72.254 para 25.003 bytes. O perfil de cor foi preservado. O original está em `source-assets/client-lactalis-original.svg`.

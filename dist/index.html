@@ -12,8 +12,8 @@
   <link rel="icon" href="assets/owl-logo.png" type="image/png">
   <link rel="preload" href="assets/manrope-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/weighbridge-flatend.webp" as="image" fetchpriority="high">
-  <link rel="stylesheet" href="assets/styles.min.css?v=32">
-  <script src="assets/app.min.js?v=32" defer></script>
+  <link rel="stylesheet" href="assets/styles.min.css?v=33">
+  <script src="assets/app.min.js?v=33" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -96,7 +96,7 @@
                   <div class="owl-window-bar"><span class="owl-window-mark"></span><span>Ticket de pesagem</span><span class="owl-window-controls">−　□　×</span></div>
                   <div class="owl-final-layout">
                     <div class="owl-weight-panel"><span class="owl-scale-number">1</span><div class="owl-weight-item"><span>PESAGEM INICIAL</span><strong data-demo-weight="initial">28.840 kg</strong></div><div class="owl-weight-item"><span>PESAGEM FINAL</span><strong data-demo-weight="final">32.840 kg</strong></div><div class="owl-weight-item"><span>PESO LÍQUIDO</span><strong data-demo-weight="net">4.000 kg</strong></div><div class="owl-operation"><span>OPERAÇÃO</span><strong>CARGA</strong></div></div>
-                    <div class="owl-final-content"><div class="owl-final-title">REALIZAR PESAGEM FINAL</div><div class="owl-final-tabs"><span>Pesagem final</span><span>Informações do ticket</span><span>Notas fiscais</span><span>Pesagens SPA</span></div><div class="owl-final-form"><div class="owl-license"><strong>PLACA DO VEÍCULO</strong><div class="owl-license-plate"><div class="owl-license-band"><small>MERCOSUL</small><span>BRASIL</span><i>BR</i></div><b>ABC1D23</b></div></div><div class="owl-product-field"><span>Produto</span><div>MILHO A GRANEL <span>⌄</span></div></div><div class="owl-record-id"><span>ID da pesagem</span><strong>5</strong><span class="owl-transport-docs">Documentos de transporte</span></div><div class="owl-observations"><strong>Observações</strong><div>Carga de milho a granel. Lacre: 084215.<br>Veículo liberado após conferência.</div></div><div class="owl-tare-option">Utilizar tara pré-cadastrada</div></div><div class="owl-confirm"><span>CONFIRMAR PESAGEM FINAL</span><span class="owl-confirmed-label">✓ PESAGEM FINAL CONFIRMADA</span></div></div>
+                    <div class="owl-final-content"><div class="owl-final-title">REALIZAR PESAGEM FINAL</div><div class="owl-final-tabs"><span>Pesagem final</span><span>Informações do ticket</span><span>Notas fiscais</span><span>Pesagens SPA</span></div><div class="owl-final-form"><div class="owl-license"><strong>PLACA DO VEÍCULO</strong><div class="owl-license-plate"><div class="owl-license-band"><small>MERCOSUL</small><span>BRASIL</span><i>BR</i></div><b>ABC1D23</b></div></div><div class="owl-product-field"><span>Produto</span><div>CIMENTO A GRANEL <span>⌄</span></div></div><div class="owl-record-id"><span>ID da pesagem</span><strong>5</strong><span class="owl-transport-docs">Documentos de transporte</span></div><div class="owl-observations"><strong>Observações</strong><div>Carga de cimento a granel. Lacre: 084215.<br>Veículo liberado após conferência.</div></div><div class="owl-tare-option">Utilizar tara pré-cadastrada</div></div><div class="owl-confirm"><span>CONFIRMAR PESAGEM FINAL</span><span class="owl-confirmed-label">✓ PESAGEM FINAL CONFIRMADA</span></div></div>
                   </div>
                 </div>
                 <div class="owl-demo-pointer"><svg viewBox="0 0 28 36"><path d="M3 2v27l7-7 6 12 5-3-6-11h10Z"/></svg><i></i></div>
@@ -106,49 +106,42 @@
               <div class="ticket-printer">
                 <div class="printer-slot"></div>
                 <div class="paper-reveal">
-                  <article class="weighing-ticket" aria-label="Exemplo de ticket SIAMAC: peso inicial de 28.840 quilos, peso final de 32.840 quilos e peso líquido de 4.000 quilos">
-                    <div class="ticket-document">
+                  <article class="weighing-ticket" aria-label="Exemplo de ticket SIAMAC com fotos de entrada e saída: peso inicial de 28.840 quilos, peso final de 32.840 quilos e peso líquido de 4.000 quilos">
+                    <div class="ticket-document ticket-document--photos">
                       <header class="ticket-doc-header">
                         <div class="ticket-doc-logo"><img src="assets/siamac-logo.webp" width="1000" height="147" alt="SIAMAC" decoding="async"></div>
-                        <div class="ticket-doc-company"><strong>SIAMAC | Soluções Inteligentes</strong><p>Avenida Santos Dumont Estrada do Coco Shopping Ponto Verde, Loja 22<br>Lauro de Freitas - BA<br>Tel: (11) 91851-2948 | E-mail: vendas@siamac.com.br</p></div>
-                        <p class="ticket-doc-issued">Emitido dia 27/10/2026 às 10:08:25</p>
+                        <div class="ticket-doc-company"><strong>SIAMAC | Soluções Inteligentes</strong><p>Avenida Santos Dumont, Shopping Ponto Verde, Loja 22<br>Lauro de Freitas - BA<br>Tel: (11) 91851-2948 | vendas@siamac.com.br</p></div>
+                        <p class="ticket-doc-issued">Emitido em 27/10/2026 às 10:08:25</p>
                       </header>
                       <div class="ticket-doc-grid">
                         <section><h3>Veículo, condutor e transportadora</h3><dl class="ticket-doc-fields">
                           <div><dt>Placa do veículo:</dt><dd>ABC1D23</dd></div>
                           <div><dt>Placa da carreta:</dt><dd>DEF4G56</dd></div>
                           <div><dt>Motorista:</dt><dd>JOÃO SILVA</dd></div>
-                          <div><dt>CPF do motorista:</dt><dd>123.***.***-00</dd></div>
+                          <div><dt>CPF do motorista:</dt><dd>Não informado</dd></div>
                           <div><dt>Transportadora:</dt><dd>HORIZONTE LOGÍSTICA</dd></div>
                         </dl></section>
-                        <section><h3>Ticket de pesagem</h3><p class="ticket-doc-number">000005</p></section>
+                        <section><h3>Ticket de pesagem</h3><p class="ticket-doc-number">000005</p><p class="ticket-doc-reference">NF-e 005842 · SÉRIE 001<br>Balança 01 · Expedição</p></section>
                         <section><h3>Informações sobre o ticket</h3><dl class="ticket-doc-fields">
-                          <div><dt>Produto:</dt><dd>MILHO A GRANEL</dd></div>
+                          <div><dt>Produto:</dt><dd>CIMENTO A GRANEL</dd></div>
                           <div><dt>Operação:</dt><dd>CARGA</dd></div>
-                          <div><dt>Cliente:</dt><dd>AGROINDUSTRIAL VALE VERDE</dd></div>
-                          <div><dt>Fornecedor:</dt><dd>FAZENDA BOA VISTA</dd></div>
+                          <div><dt>Cliente:</dt><dd>CONSTRUTORA HORIZONTE</dd></div>
+                          <div><dt>Fornecedor:</dt><dd>CIMENTEIRA VALE VERDE</dd></div>
                         </dl></section>
-                        <section><h3>Notas fiscais</h3><dl class="ticket-doc-fields ticket-doc-short-fields">
-                          <div><dt>NF-e:</dt><dd>005842 · SÉRIE 001</dd></div>
-                          <div><dt>Emissão:</dt><dd>27/10/2026</dd></div>
-                          <div><dt>Quantidade:</dt><dd data-ticket-weight="net">4.000 kg</dd></div>
-                        </dl></section>
-                        <section><h3>Informações adicionais</h3><dl class="ticket-doc-fields">
-                          <div><dt>Balança:</dt><dd>01 · EXPEDIÇÃO</dd></div>
-                          <div><dt>Lote:</dt><dd>MIL-2026-1027</dd></div>
-                          <div><dt>Origem:</dt><dd>BARREIRAS - BA</dd></div>
-                          <div><dt>Destino:</dt><dd>LAURO DE FREITAS - BA</dd></div>
-                        </dl></section>
-                        <section><h3>Observações</h3><p class="ticket-doc-notes">Carga de milho a granel.<br>Pesos capturados automaticamente.<br>Veículo liberado após conferência.<br>Lacre: 084215.</p></section>
+                        <section><h3>Observações</h3><p class="ticket-doc-notes">Pesos capturados automaticamente.<br>Registro fotográfico de entrada e saída.<br>Lacre: 084215 · Lote CIM-2026-1027.</p></section>
                       </div>
-                      <section class="ticket-doc-records"><h3>Registros de operação</h3>
-                        <div class="ticket-doc-record"><div><h4>PRÉ-PESAGEM</h4><p>27/10/2026 09:44:46</p><p>Operador: <span>ANA COSTA</span></p></div></div>
-                        <div class="ticket-doc-record"><div><h4>PESAGEM INICIAL</h4><p>27/10/2026 10:07:43</p><p>Operador: <span>ANA COSTA</span></p></div><strong data-ticket-weight="initial">28.840 kg</strong></div>
-                        <div class="ticket-doc-record"><div><h4>PESAGEM FINAL</h4><p>27/10/2026 10:08:07</p><p>Operador: <span>ANA COSTA</span></p></div><strong data-ticket-weight="final">32.840 kg</strong></div>
-                        <div class="ticket-doc-record"><div><h4>PESO LÍQUIDO CORRIGIDO</h4><p>Peso líquido antes da correção: <span data-ticket-weight="net">4.000 kg</span></p><p>Fator de correção aplicado: <span>1,0000</span></p></div><strong data-ticket-weight="net">4.000 kg</strong></div>
+                      <section class="ticket-photo-records" aria-label="Registros de operação">
+                        <div><h4>PESAGEM INICIAL</h4><strong data-ticket-weight="initial">28.840 kg</strong><p>27/10/2026 09:44:46<br>Operador: ANA COSTA</p></div>
+                        <div><h4>PESAGEM FINAL</h4><strong data-ticket-weight="final">32.840 kg</strong><p>27/10/2026 10:08:07<br>Operador: ANA COSTA</p></div>
+                        <div><h4>PESO LÍQUIDO</h4><strong data-ticket-weight="net">4.000 kg</strong><p>Fator de correção: 1,0000<br>Registro concluído</p></div>
                       </section>
-                      <div class="ticket-doc-signatures"><span>CLIENTE</span><span>FORNECEDOR</span></div>
-                      <p class="ticket-doc-example">Dados de exemplo para demonstração.</p>
+                      <section class="ticket-photo-summary"><h3>Fotos do ticket · Entrada e saída</h3><div class="ticket-photo-grid">
+                        <figure><img data-story-src="assets/ticket-entrada-1-preview.webp" width="640" height="360" alt="Foto ilustrativa de entrada: vista traseira do caminhão na balança" decoding="async"><figcaption>ENTRADA · Câmera 01</figcaption></figure>
+                        <figure><img data-story-src="assets/ticket-entrada-2-preview.webp" width="640" height="360" alt="Foto ilustrativa de entrada: vista frontal do caminhão na balança" decoding="async"><figcaption>ENTRADA · Câmera 02</figcaption></figure>
+                        <figure><img data-story-src="assets/ticket-saida-1-preview.webp" width="640" height="360" alt="Foto ilustrativa de saída: vista traseira do caminhão na balança" decoding="async"><figcaption>SAÍDA · Câmera 01</figcaption></figure>
+                        <figure><img data-story-src="assets/ticket-saida-2-preview.webp" width="640" height="360" alt="Foto ilustrativa de saída: vista frontal do caminhão na balança" decoding="async"><figcaption>SAÍDA · Câmera 02</figcaption></figure>
+                      </div></section>
+                      <p class="ticket-doc-example">Dados de demonstração e fotos ilustrativas. Documento sem validade comercial.</p>
                     </div>
                   </article>
                 </div>
@@ -303,6 +296,37 @@
   <a class="whatsapp-float" href="https://wa.me/5511918512948?text=Ol%C3%A1%2C%20equipe%20SIAMAC%21%20Vim%20pelo%20site%20do%20OWL%20e%20quero%20testar%20o%20software%20de%20pesagem.%20Gostaria%20de%20saber%20como%20ele%20pode%20ajudar%20na%20minha%20opera%C3%A7%C3%A3o%20e%20quais%20s%C3%A3o%20as%20possibilidades%20de%20automatizar%20minha%20balan%C3%A7a." target="_blank" rel="noopener noreferrer" aria-label="Falar com a SIAMAC pelo WhatsApp" title="Fale com a SIAMAC pelo WhatsApp">
     <svg aria-hidden="true" viewBox="0 0 16 16"><use href="#i-chat"/></svg>
   </a>
+  <template id="ticket-photo-pages">
+    <section class="ticket-document ticket-photo-page" aria-label="Fotos do ticket: entrada">
+      <header class="ticket-doc-header">
+                        <div class="ticket-doc-logo"><img src="assets/siamac-logo.webp" width="1000" height="147" alt="SIAMAC" decoding="async"></div>
+                        <div class="ticket-doc-company"><strong>SIAMAC | Soluções Inteligentes</strong><p>Avenida Santos Dumont, Shopping Ponto Verde, Loja 22<br>Lauro de Freitas - BA<br>Tel: (11) 91851-2948 | vendas@siamac.com.br</p></div>
+                        <p class="ticket-doc-issued">Emitido em 27/10/2026 às 10:08:25</p>
+                      </header>
+      <div class="ticket-photo-meta"><p><b>Ticket:</b> 000005 · <b>Veículo:</b> ABC1D23 · <b>Reboque:</b> DEF4G56</p><p><b>Motorista:</b> JOÃO SILVA · <b>Transportadora:</b> HORIZONTE LOGÍSTICA</p><p><b>Produto:</b> CIMENTO A GRANEL · <b>Operação:</b> CARGA</p><p><b>Cliente:</b> CONSTRUTORA HORIZONTE · <b>Fornecedor:</b> CIMENTEIRA VALE VERDE</p><p><b>Registro demonstrativo:</b> 27/10/2026 09:44:46</p></div>
+      <h3>Fotos do ticket - ENTRADA</h3>
+      <div class="ticket-photo-grid"><figure><img data-ticket-photo="assets/ticket-entrada-1.jpg" width="1280" height="720" alt="Foto ilustrativa de entrada, câmera 01" loading="lazy" decoding="async"><figcaption>Câmera 01</figcaption></figure>
+<figure><img data-ticket-photo="assets/ticket-entrada-2.jpg" width="1280" height="720" alt="Foto ilustrativa de entrada, câmera 02" loading="lazy" decoding="async"><figcaption>Câmera 02</figcaption></figure>
+<figure><img data-ticket-photo="assets/ticket-entrada-3.jpg" width="1280" height="720" alt="Foto ilustrativa de entrada, câmera 03" loading="lazy" decoding="async"><figcaption>Câmera 03</figcaption></figure>
+<figure><img data-ticket-photo="assets/ticket-entrada-4.jpg" width="1280" height="720" alt="Foto ilustrativa de entrada, câmera 04" loading="lazy" decoding="async"><figcaption>Câmera 04</figcaption></figure></div>
+      <p class="ticket-doc-example">Dados de demonstração. Fotos ilustrativas do documento de referência, com datas originais nas imagens.</p>
+    </section>
+    <section class="ticket-document ticket-photo-page" aria-label="Fotos do ticket: saída">
+      <header class="ticket-doc-header">
+                        <div class="ticket-doc-logo"><img src="assets/siamac-logo.webp" width="1000" height="147" alt="SIAMAC" decoding="async"></div>
+                        <div class="ticket-doc-company"><strong>SIAMAC | Soluções Inteligentes</strong><p>Avenida Santos Dumont, Shopping Ponto Verde, Loja 22<br>Lauro de Freitas - BA<br>Tel: (11) 91851-2948 | vendas@siamac.com.br</p></div>
+                        <p class="ticket-doc-issued">Emitido em 27/10/2026 às 10:08:25</p>
+                      </header>
+      <div class="ticket-photo-meta"><p><b>Ticket:</b> 000005 · <b>Veículo:</b> ABC1D23 · <b>Reboque:</b> DEF4G56</p><p><b>Motorista:</b> JOÃO SILVA · <b>Transportadora:</b> HORIZONTE LOGÍSTICA</p><p><b>Produto:</b> CIMENTO A GRANEL · <b>Operação:</b> CARGA</p><p><b>Cliente:</b> CONSTRUTORA HORIZONTE · <b>Fornecedor:</b> CIMENTEIRA VALE VERDE</p><p><b>Registro demonstrativo:</b> 27/10/2026 10:08:07</p></div>
+      <h3>Fotos do ticket - SAÍDA</h3>
+      <div class="ticket-photo-grid"><figure><img data-ticket-photo="assets/ticket-saida-1.jpg" width="1280" height="720" alt="Foto ilustrativa de saída, câmera 01" loading="lazy" decoding="async"><figcaption>Câmera 01</figcaption></figure>
+<figure><img data-ticket-photo="assets/ticket-saida-2.jpg" width="1280" height="720" alt="Foto ilustrativa de saída, câmera 02" loading="lazy" decoding="async"><figcaption>Câmera 02</figcaption></figure>
+<figure><img data-ticket-photo="assets/ticket-saida-3.jpg" width="1280" height="720" alt="Foto ilustrativa de saída, câmera 03" loading="lazy" decoding="async"><figcaption>Câmera 03</figcaption></figure>
+<figure><img data-ticket-photo="assets/ticket-saida-4.jpg" width="1280" height="720" alt="Foto ilustrativa de saída, câmera 04" loading="lazy" decoding="async"><figcaption>Câmera 04</figcaption></figure></div>
+      <p class="ticket-doc-example">Dados de demonstração. Fotos ilustrativas do documento de referência, com datas originais nas imagens.</p>
+    </section>
+  </template>
+
   <dialog class="ticket-dialog" id="ticket-preview" aria-labelledby="ticket-preview-title">
     <div class="ticket-dialog-header"><h2 id="ticket-preview-title">Ticket de pesagem</h2><button class="ticket-dialog-close" type="button" aria-label="Fechar ticket ampliado" autofocus>Fechar <span aria-hidden="true">×</span></button></div>
     <div class="ticket-dialog-scroll" tabindex="0" aria-label="Ticket completo; role para ver todos os detalhes"><div class="ticket-dialog-page"></div></div>

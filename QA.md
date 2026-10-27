@@ -1,5 +1,13 @@
 # Verificação da landing page OWL
 
+## Ticket com fotos — 27/10/2026
+
+- As três páginas do PDF enviado foram renderizadas e inspecionadas. A adaptação mostra quatro fotos no resumo do hero e todas as oito fotos nos anexos da ampliação, com cabeçalhos SIAMAC e dados demonstrativos substituindo os dados textuais do original.
+- Em 1280 × 900 e 320 × 568, a folha e o botão principal ficam inteiros no final; a folha mantém 833 px de altura interna sem transbordamento. Cabeçalho com espaço entre contatos e emissão, sem sobreposição.
+- Ampliação abre e fecha nos dois tamanhos. Conferidas as três páginas e as oito fotos originais de 1280 × 720 carregadas ao percorrer os anexos. Antes da primeira abertura, não há imagens originais inseridas no DOM.
+- Pesos: 28.840 kg inicial, 32.840 kg final e 4.000 kg líquido; produto cimento a granel também atualizado na janela da animação. O ritmo da rolagem e a pausa do ticket não foram alterados.
+- JPEGs originais conferidos byte a byte com o PDF; quatro prévias WebP de 640 × 360 carregadas após a primeira pintura. Build, sintaxe, caminhos das imagens adiadas e console conferidos.
+
 ## Lactalis na faixa de clientes — 27/10/2026
 
 - Logo oficial da Lactalis Brasil incluída nas duas sequências, agora com 21 marcas cada; cópia decorativa com `alt` vazio e `aria-hidden` preservado.
