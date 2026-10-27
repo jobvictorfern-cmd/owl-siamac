@@ -1,5 +1,12 @@
 # Verificação da landing page OWL
 
+## Sequência inteira com menos rolagem — 27/10/2026
+
+- Redução uniforme de 30% na distância da narrativa; os tempos relativos, as seis etapas e a pausa separada de 96–144 px do ticket foram preservados.
+- Em 1280 × 720, o percurso passou de 3344,625 para 2341,234 px. Conferidos caminhão, indicador, notebook, seleção do veículo, confirmação e ticket completo, com botão visível. Após mais 216 px, clientes visíveis e seção fixa liberada.
+- Em 390 × 700, percurso de 2080,5 px (antes: 2972,141 px); seleção e confirmação funcionaram nos dois sentidos. Ticket inteiro e botão visível no final; após mais 210 px, a página seguiu para os clientes.
+- Sem transbordamento horizontal ou erros de console. Build e sintaxe dos arquivos JavaScript fonte e minificado validados; imagens e dimensões do ticket mantidas.
+
 ## Saída mais curta do ticket — 27/10/2026
 
 - A pausa extra após a impressão passou de uma tela inteira (mínimo de 480 px) para 16% da área fixa, limitada a 96–144 px. O trecho das etapas anteriores permanece igual.

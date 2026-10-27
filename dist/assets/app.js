@@ -4,6 +4,7 @@
   const WEIGHING = { initial: 28840, final: 32840 };
   WEIGHING.net = WEIGHING.final - WEIGHING.initial;
   const STORY_LENGTH = 1.92;
+  const STORY_SCROLL_SCALE = .7;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hero = document.querySelector('.hero-scroll');
   const deferredMedia = [...hero.querySelectorAll('[data-story-src]')];
@@ -489,10 +490,10 @@
     // Briefly show the completed ticket, then release the page without an extra screen of scrolling.
     const ticketHold=Math.min(144,Math.max(96,Math.round(stickyHeight*.16)));
     hero.style.setProperty('--ticket-hold',`${ticketHold}px`);
-    // Extend the narrative for the two windows while retaining the original physical-scene speed.
+    // Use 30% less scroll for the full timeline, preserving every scene and the separate ticket hold.
     const previousExtra=parseFloat(hero.style.getPropertyValue('--workflow-extra'))||0;
     const originalRange=Math.max(1,hero.getBoundingClientRect().height-stickyHeight-ticketHold-previousExtra);
-    hero.style.setProperty('--workflow-extra',`${originalRange*(STORY_LENGTH-1)}px`);
+    hero.style.setProperty('--workflow-extra',`${originalRange*(STORY_LENGTH*STORY_SCROLL_SCALE-1)}px`);
     const offset = document.querySelector('.site-header').getBoundingClientRect().height;
     storyStart = hero.getBoundingClientRect().top+window.scrollY-offset;
     storyRange = Math.max(1,hero.getBoundingClientRect().height-stickyHeight-ticketHold);
